@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ShopTem</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f0f0f0;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        h1 {
+            margin-top: 0;
+            color: #333;
+            text-align: center;
+            font-size: 24px;
+        }
+
+        label {
+            display: block;
+            margin-top: 15px;
+            margin-bottom: 5px;
+            color: #555;
+            font-weight: bold;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea,
+        select {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 15px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            resize: vertical;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #ffffff;
+            padding: 12px;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+            display: block;
+            width: 100%;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+            transform: scale(1.02);
+        }
+
+        .message {
+            margin-top: 20px;
+            padding: 12px;
+            border-radius: 8px;
+            display: none;
+            text-align: center;
+            font-weight: bold;
+        }
+
+        .message.success {
+            background-color: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background-color: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        #newCategoryContainer {
+            display: none;
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        #newCategoryContainer input[type="text"] {
+            width: calc(100% - 22px);
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <h1>Adicionar Produto</h1>
+        <form id="productForm">
+            <label for="title">Título:</label>
+            <input type="text" id="title" name="title" required>
+
+            <label for="description">Descrição:</label>
+            <textarea id="description" name="description" rows="4" required></textarea>
+
+            <label for="price">Preço:</label>
+            <input type="number" id="price" name="price" step="0.01" required>
+
+            <label for="imageUrls">URLs das Imagens (separadas por vírgula):</label>
+            <input type="text" id="imageUrls" name="imageUrls" required>
+
+            <label for="colors">Cores (separadas por vírgula):</label>
+            <input type="text" id="colors" name="colors" required>
+
+            <label for="sizes">Tamanhos (separados por vírgula):</label>
+            <input type="text" id="sizes" name="sizes" required>
+
+            <label for="shippingCost">Custo de Envio:</label>
+            <input type="number" id="shippingCost" name="shippingCost" step="0.01" required>
+
+            <label for="category">Categoria:</label>
+            <select id="category" name="category" required></select>
+            <button type="button" id="addCategoryButton">Adicionar Nova Categoria</button>
+
+            <div id="newCategoryContainer">
+                <input type="text" id="newCategory" placeholder="Nova categoria">
+                <button type="button" id="saveCategoryButton">Salvar Categoria</button>
+            </div>
+
+            <button type="submit">Enviar</button>
+        </form>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            loadCategories();
+
+            document.getElementById('productForm').addEventListener('submit', function (event) {
+                event.preventDefault();
+
+                const title = document.getElementById('title').value;
+                const description = document.getElementById('description').value;
+                const price = document.getElementById('price').value;
+                const imageUrls = document.getElementById('imageUrls').value.split(',');
+                const colors = document.getElementById('colors').value.split(',');
+                const sizes = document.getElementById('sizes').value.split(',');
+                const shippingCost = document.getElementById('shippingCost').value;
+                const category = document.getElementById('category').value;
+
+                fetch('http://localhost:3000/api/products', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        title: title,
+                        description: description,
+                        price: parseFloat(price),
+                        imageUrls: imageUrls,
+                        colors: colors,
+                        sizes: sizes,
+                        shippingCost: parseFloat(shippingCost),
+                        category: category,
+                    }),
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        showMessage('Produto adicionado com sucesso!', 'success');
+                        document.getElementById('productForm').reset();
+                    })
+                    .catch(error => {
+                        showMessage('Erro ao adicionar produto: ' + error.message, 'error');
+                        console.error('Erro ao adicionar produto:', error);
+                    });
+            });
+
+            document.getElementById('addCategoryButton').addEventListener('click', function () {
+                document.getElementById('newCategoryContainer').style.display = 'block';
+            });
+
+            document.getElementById('saveCategoryButton').addEventListener('click', function () {
+                const newCategory = document.getElementById('newCategory').value;
+                if (newCategory) {
+                    fetch('http://localhost:3000/api/categories', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({ category: newCategory }),
+                    })
+                        .then(response => response.json())
+                        .then(data => {
+                            showMessage(data.message, 'success');
+                            document.getElementById('newCategory').value = '';
+                            document.getElementById('newCategoryContainer').style.display = 'none';
+                            loadCategories(); // Atualizar a lista de categorias
+                        })
+                        .catch(error => {
+                            showMessage('Erro ao adicionar categoria: ' + error.message, 'error');
+                            console.error('Erro ao adicionar categoria:', error);
+                        });
+                }
+            });
+        });
+
+        function loadCategories() {
+            fetch('http://localhost:3000/api/categories')
+                .then(response => response.json())
+                .then(data => {
+                    const categorySelect = document.getElementById('category');
+                    categorySelect.innerHTML = '';
+                    data.forEach(category => {
+                        const option = document.createElement('option');
+                        option.value = category;
+                        option.textContent = category;
+                        categorySelect.appendChild(option);
+                    });
+                })
+                .catch(error => {
+                    showMessage('Erro ao carregar categorias: ' + error.message, 'error');
+                    console.error('Erro ao carregar categorias:', error);
+                });
+        }
+
+        function showMessage(message, type) {
+            const messageDiv = document.getElementById('message');
+            messageDiv.textContent = message;
+            messageDiv.className = 'message ' + type;
+            messageDiv.style.display = 'block';
+        }
+    </script>
+</body>
+
+</html>
