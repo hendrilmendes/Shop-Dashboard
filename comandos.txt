@@ -1,0 +1,7 @@
+limpar dados
+
+curl -X DELETE http://localhost:3000/api/clear
+
+iniciar server
+
+node server.js 

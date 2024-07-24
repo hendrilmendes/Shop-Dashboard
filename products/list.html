@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lista de Produtos</title>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <style>
+        .product-card {
+            margin: 15px;
+            padding: 0;
+        }
+
+        .discount {
+            color: red;
+            font-weight: bold;
+        }
+
+        .out-of-stock {
+            color: grey;
+            font-weight: bold;
+        }
+
+        .truncate-description {
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 3;
+            /* número de linhas visíveis */
+            -webkit-box-orient: vertical;
+        }
+
+        .card-title {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 5px;
+            border-radius: 0 0 4px 4px;
+        }
+
+        .card-content {
+            padding: 15px;
+            position: relative;
+        }
+
+        .card-content p {
+            margin: 0;
+        }
+
+        .card-content .price {
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .card-action {
+            padding: 10px;
+        }
+
+        .card .card-image img {
+            object-fit: cover;
+            height: 200px;
+            width: 100%;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .card-content .read-more {
+            color: #00796b;
+            font-weight: bold;
+        }
+
+        .card-content .read-more:hover {
+            text-decoration: underline;
+        }
+
+        .search-bar {
+            position: relative;
+            border-radius: 30px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+            padding-left: 40px;
+            padding-right: 40px;
+            padding-left: 50px;
+            /* Espaço para o ícone de pesquisa */
+            padding-right: 50px;
+            /* Espaço para o ícone de limpeza */
+            max-width: 500px;
+            /* Define a largura máxima */
+            min-width: 300px;
+            /* Define a largura mínima */
+            margin: 0 auto;
+        }
+
+        .search-bar .prefix {
+            position: absolute;
+            left: 10px;
+            top: 12px;
+            color: #757575;
+        }
+
+        .search-bar .clear-icon {
+            position: absolute;
+            right: 10px;
+            top: 12px;
+            color: #757575;
+            cursor: pointer;
+        }
+
+        .search-bar input {
+            border-radius: 30px;
+            padding-left: 40px !important;
+            padding-right: 40px !important;
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Remove underline on focus */
+        .search-bar input:focus {
+            border: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Remove underline for all input fields */
+        .input-field .validate+label,
+        .input-field .validate:focus+label {
+            top: -20px !important;
+            opacity: 0 !important;
+        }
+
+        .input-field .validate:focus+label::after,
+        .input-field .validate:focus {
+            border-bottom: none !important;
+            box-shadow: none !important;
+        }
+
+        .nav-wrapper {
+            padding: 0 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <nav>
+        <div class="nav-wrapper">
+            <a href="#" class="brand-logo">ShopTem</a>
+            <ul id="nav-mobile" class="right hide-on-med-and-down">
+                <li><a href="http://localhost/web">Início</a></li>
+                <li><a href="http://localhost/web/products/add.html">Adicionar Produto</a></li>
+            </ul>
+        </div>
+    </nav>
+    <div class="container">
+        <h1 class="center-align">Lista de Produtos</h1>
+        <div class="row search-bar-container">
+            <div class="input-field search-bar">
+                <i class="material-icons prefix">search</i>
+                <input id="search" type="text" class="validate">
+                <i class="material-icons clear-icon">clear</i>
+            </div>
+        </div>
+        <div id="products" class="row"></div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            let products = [];
+
+            const fetchProducts = () => {
+                fetch('http://localhost:3000/api/products')
+                    .then(response => response.json())
+                    .then(data => {
+                        products = data;
+                        displayProducts(products);
+                    })
+                    .catch(error => {
+                        console.error('Erro ao buscar produtos:', error);
+                    });
+            };
+
+            const displayProducts = (products) => {
+                const productsContainer = document.getElementById('products');
+                productsContainer.innerHTML = '';
+
+                products.forEach(product => {
+                    const card = document.createElement('div');
+                    card.className = 'col s12 m6 l3 product-card'; /* Cada card ocupa 4 colunas em telas grandes */
+
+                    const discountLabel = product.discount > 0 ? `<span class="discount">${product.discount}% de desconto</span>` : '';
+                    const stockStatus = product.isOutOfStock ? `<span class="out-of-stock">Fora de Estoque</span>` : '';
+
+                    const description = product.description.length > 150 ? product.description.substring(0, 150) + '...' : product.description;
+                    const readMore = product.description.length > 150 ? `<a href="#!" class="read-more">Ler Mais</a>` : '';
+
+                    card.innerHTML = `
+                        <div class="card">
+                            <div class="card-image">
+                                <img src="${product.imageUrls[0]}" alt="${product.title}">
+                                <span class="card-title">${product.title}</span>
+                            </div>
+                            <div class="card-content">
+                                <p>Código do Produto: ${product.id}</p>
+                                <br>
+                                <p class="truncate-description">${description} ${readMore}</p>
+                                <br>
+                                <p class="price">Preço: R$${product.price.toFixed(2)}</p>
+                                <br>
+                                ${discountLabel}
+                                <br>
+                                ${stockStatus}
+                            </div>
+                            <div class="card-action">
+                                <a href="./edit.html?id=${product.id}" class="btn waves-effect waves-light">
+                                    <i class="material-icons left">edit</i>Editar
+                                </a>
+                            </div>
+                        </div>
+                    `;
+
+                    productsContainer.appendChild(card);
+                });
+
+                document.querySelectorAll('.read-more').forEach(button => {
+                    button.addEventListener('click', function (event) {
+                        const content = event.target.closest('.card-content').querySelector('.truncate-description');
+                        const fullDescription = products.find(product => product.description.startsWith(content.textContent.trim().replace('...', ''))).description;
+                        content.textContent = fullDescription;
+                        event.target.style.display = 'none';
+                    });
+                });
+            };
+
+            document.getElementById('search').addEventListener('input', function () {
+                const query = this.value.toLowerCase();
+                const filteredProducts = products.filter(product => product.title.toLowerCase().includes(query));
+                displayProducts(filteredProducts);
+            });
+
+            document.querySelector('.clear-icon').addEventListener('click', function () {
+                document.getElementById('search').value = '';
+                displayProducts(products);
+            });
+
+            fetchProducts();
+        });
+    </script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+</body>
+
+</html>
