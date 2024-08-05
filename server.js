@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const qr = require('qrcode');
 
 const app = express();
 const port = 3000;
@@ -50,6 +51,28 @@ categorySchema.method('toJSON', function () {
 
 const Category = mongoose.model('Category', categorySchema);
 
+//Esquema de pedidos
+const orderSchema = new mongoose.Schema({
+    id: { type: String, unique: true, required: true },
+    customerName: { type: String, required: true },
+    address: { type: String, required: true },
+    paymentMethod: { type: String, required: true },
+    amount: { type: Number, required: true },
+    date: { type: Date, default: Date.now },
+    items: [
+        {
+            id: { type: String, required: true },
+            title: { type: String, required: true },
+            quantity: { type: Number, required: true },
+            price: { type: Number, required: true },
+            color: { type: String, required: true },
+            size: { type: String, required: true }
+        }
+    ]
+});
+
+const Order = mongoose.model('Order', orderSchema);
+
 app.use(bodyParser.json());
 app.use(cors());
 
@@ -61,7 +84,7 @@ async function generateUniqueId(model) {
 
 // Endpoint para adicionar um produto
 app.post('/api/products', async (req, res) => {
-    const { title, description, price, imageUrls, colors, sizes, shippingCost, category, isOutOfStock } = req.body;
+    const { title, description, price, imageUrls, colors, sizes, shippingCost, category, isOutOfStock, discount } = req.body;
     try {
         const id = await generateUniqueId(Product);
         const product = new Product({
@@ -177,13 +200,42 @@ app.delete('/api/products/:id', async (req, res) => {
     }
 });
 
+// Endpoint para listar todos os pedidos
+app.get('/api/orders', async (req, res) => {
+    try {
+        const orders = await Order.find();
+        res.status(200).json(orders);
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao buscar pedidos', error });
+    }
+});
+
+app.post('/api/orders', async (req, res) => {
+    const { customerName, address, paymentMethod, amount, items } = req.body;
+    try {
+        const id = new mongoose.Types.ObjectId().toString();
+        const order = new Order({
+            id,
+            customerName,
+            address,
+            paymentMethod,
+            amount,
+            items
+        });
+        await order.save();
+        res.status(201).json(order);
+    } catch (error) {
+        res.status(500).json({ message: 'Erro ao criar pedido', error });
+    }
+});
+
 
 // Endpoint para limpar tudo
 app.delete('/api/clear', async (req, res) => {
     try {
         await Product.deleteMany({});
         await Category.deleteMany({});
-        res.status(200).json({ message: 'Todas as coleções foram limpas com sucesso!' });
+        res.status(200).json({ message: 'Todas os dados foram limpos com sucesso!' });
     } catch (error) {
         res.status(500).json({ message: 'Erro ao limpar coleções', error });
     }

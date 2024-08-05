@@ -5,338 +5,500 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Editar Produto</title>
+    <link rel="stylesheet" href="https://code.getmdl.io/1.3.0/material.blue-light_blue.min.css">
     <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css" rel="stylesheet">
     <style>
         body {
-            font-family: 'Roboto', sans-serif;
             margin: 0;
             padding: 0;
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            box-sizing: border-box;
         }
 
-        .navbar {
-            position: fixed;
-            width: 100%;
-            top: 0;
-            left: 0;
-            z-index: 1000;
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #fafafa;
         }
 
-        .navbar .nav-wrapper {
-            padding: 0 20px;
+        .mdl-layout__header-row .mdl-layout-title {
+            font-size: 24px;
         }
 
         .container {
+            margin: 80px auto 20px;
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
-            max-width: 800px;
+            max-width: 700px;
             width: 100%;
-            box-sizing: border-box;
-            margin-top: 80px;
-            /* Ajuste para não ficar embaixo da nav */
+            background-color: #fff;
         }
 
         h1 {
-            color: black;
+            margin-top: 0;
+            color: #333;
             text-align: center;
             font-size: 24px;
-            margin-bottom: 30px;
-            border-bottom: 2px solid #6200ea;
+            border-bottom: 2px solid #3f51b5;
             padding-bottom: 10px;
-        }
-
-        .input-field {
-            margin-bottom: 20px;
-        }
-
-        .input-field input,
-        .input-field textarea,
-        .input-field select,
-        .input-field select option {
-            color: black;
         }
 
         .message {
             margin-top: 20px;
-            padding: 15px;
+            padding: 12px;
             border-radius: 8px;
+            display: none;
             text-align: center;
             font-weight: bold;
-            display: none;
-            transition: opacity 0.5s ease;
-            position: relative;
         }
 
         .message.success {
             background-color: #d4edda;
             color: #155724;
+            border: 1px solid #c3e6cb;
         }
 
         .message.error {
             background-color: #f8d7da;
             color: #721c24;
+            border: 1px solid #f5c6cb;
         }
 
-        .message-icon {
-            position: absolute;
-            top: 50%;
-            left: 15px;
-            transform: translateY(-50%);
+        .mdl-textfield {
+            width: 100%;
         }
 
-        .message-content {
-            margin-left: 40px;
+        .dark-theme {
+            background-color: #303030;
+            color: #fff;
         }
 
+        .dark-theme .mdl-layout__header,
+        .dark-theme .mdl-layout__drawer-button {
+            background-color: #424242;
+        }
+
+        .dark-theme h1,
+        .dark-theme label,
+        .dark-theme .mdl-layout-title {
+            color: #fff;
+        }
+
+        .dark-theme .container {
+            background-color: #424242;
+        }
+
+        .dark-theme .mdl-layout__header {
+            background-color: #424242;
+        }
+
+        .dark-theme .message.success {
+            background-color: #388e3c;
+            color: #d4edda;
+        }
+
+        .dark-theme .message.error {
+            background-color: #d32f2f;
+            color: #f8d7da;
+        }
+
+        .image-url-container {
+            display: flex;
+            margin-bottom: 10px;
+        }
+
+        .image-url-container input {
+            margin-right: 10px;
+        }
+
+        /* Mobile styles */
+        @media (max-width: 600px) {
+            .mdl-layout__drawer {
+                display: block;
+            }
+
+            .mdl-layout__header {
+                display: none;
+            }
+
+            .mdl-navigation__link.desktop-link {
+                display: none;
+            }
+
+            .mdl-layout__drawer-button {
+                display: block;
+            }
+
+            .mdl-layout__content {
+                margin-left: 0;
+            }
+        }
+
+        /* Desktop styles */
+        @media (min-width: 601px) {
+            .mdl-layout__drawer {
+                display: none;
+            }
+
+            .mdl-layout__header {
+                display: block;
+            }
+
+            .mdl-navigation__link.desktop-link {
+                display: block;
+            }
+
+            .mdl-layout__content {
+                margin-left: 0;
+            }
+
+            .mdl-layout__drawer-button {
+                display: none;
+            }
+        }
+
+        .dark-theme .mdl-button {
+            background-color: #6200ea;
+            color: #ffffff;
+        }
+
+        .dark-theme .mdl-button:hover {
+            background-color: #3700b3;
+        }
     </style>
 </head>
 
 <body>
-    <nav class="navbar">
-        <div class="nav-wrapper purple darken-3">
-            <a href="http://localhost/web" class="brand-logo">ShopTem</a>
-            <ul id="nav-mobile" class="right hide-on-med-and-down">
-                <li><a href="http://localhost/web">Início</a></li>
-                <li><a href="http://localhost/web/products/add.html">Cadastrar Produtos</a></li>
-            </ul>
+    <div class="mdl-layout mdl-js-layout mdl-layout--fixed-header">
+        <!-- Drawer for Mobile -->
+        <div class="mdl-layout__drawer">
+            <nav class="mdl-navigation">
+                <a class="mdl-navigation__link" href="http://45.174.192.150/web">Dashboard</a>
+                <a class="mdl-navigation__link" href="http://45.174.192.150/web/products/add.html">Cadastrar
+                    Produtos</a>
+                <a class="mdl-navigation__link"
+                    href="http://45.174.192.150/web/settings/settings.html">Configurações</a>
+            </nav>
         </div>
-    </nav>
 
-    <div class="container">
-        <h1>Editar Produto</h1>
-        <form id="editProductForm">
-            <div class="input-field">
-                <input type="text" id="productId" name="id" required readonly>
-                <label for="productId">Código do Produto</label>
+        <!-- Header for Desktop -->
+        <header class="mdl-layout__header">
+            <div class="mdl-layout__header-row">
+                <span class="mdl-layout-title">Editar Produtos</span>
+                <div class="mdl-layout-spacer"></div>
+                <a class="mdl-navigation__link desktop-link" href="http://45.174.192.150/web">Dashboard</a>
+                <a class="mdl-navigation__link desktop-link"
+                    href="http://45.174.192.150/web/products/add.html">Cadastrar
+                    Produtos</a>
+                <a class="mdl-navigation__link desktop-link"
+                    href="http://45.174.192.150/web/settings/settings.html">Configurações</a>
+                <button id="toggle-theme" class="mdl-button mdl-js-button mdl-button--icon">
+                    <i class="material-icons">brightness_4</i>
+                </button>
             </div>
-            <div class="input-field">
-                <input type="text" id="title" name="title" required>
-                <label for="title">Título</label>
-            </div>
-            <div class="input-field">
-                <textarea id="description" name="description" class="materialize-textarea" required></textarea>
-                <label for="description">Descrição</label>
-            </div>
-            <div class="input-field">
-                <input type="number" id="price" name="price" step="0.01" required>
-                <label for="price">Preço</label>
-            </div>
-            <div class="input-field">
-                <input type="number" id="discount" name="discount" step="0.01" required>
-                <label for="discount">Desconto (%)</label>
-            </div>
-            <div class="input-field">
-                <input type="text" id="imageUrls" name="imageUrls" required>
-                <label for="imageUrls">URLs das Imagens (separadas por vírgulas)</label>
-            </div>
-            <div class="input-field">
-                <input type="text" id="colors" name="colors" required>
-                <label for="colors">Cores (separadas por vírgulas)</label>
-            </div>
-            <div class="input-field">
-                <input type="text" id="sizes" name="sizes" required>
-                <label for="sizes">Tamanhos (separados por vírgulas)</label>
-            </div>
-            <div class="input-field">
-                <input type="number" id="shippingCost" name="shippingCost" step="0.01" required>
-                <label for="shippingCost">Custo de Envio</label>
-            </div>
-            <div class="input-field">
-                <select id="category" name="category" required></select>
-                <label for="category">Categoria</label>
-            </div>
-            <div class="input-field">
-                <select id="isOutOfStock" name="isOutOfStock" required>
-                    <option value="false">Não</option>
-                    <option value="true">Sim</option>
-                </select>
-                <label for="isOutOfStock">Fora de Estoque</label>
-            </div>
+        </header>
 
-            <button type="submit" class="btn waves-effect waves-light">Salvar</button>
-            <button type="button" id="deleteProduct" class="btn red waves-effect waves-light">Excluir Produto</button>
-        </form>
-        <div id="message" class="message">
-            <span class="message-icon"><i class="material-icons">info_outline</i></span>
-            <span class="message-content">Mensagem aqui</span>
-        </div>
-    </div>
+        <main class="mdl-layout__content">
+            <div class="container">
+                <form id="editProductForm">
+                    <div id="message" class="message">
+                        <span class="message-icon"><i class="material-icons">info_outline</i></span>
+                        <span class="message-content">Mensagem aqui</span>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="productId" name="id" required readonly>
+                        <label class="mdl-textfield__label" for="productId">Código do Produto</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="title" name="title" required>
+                        <label class="mdl-textfield__label" for="title">Título</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <textarea class="mdl-textfield__input" id="description" name="description" required></textarea>
+                        <label class="mdl-textfield__label" for="description">Descrição</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="number" id="price" name="price" step="0.01" required>
+                        <label class="mdl-textfield__label" for="price">Preço</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="number" id="discount" name="discount" step="0.01"
+                            required>
+                        <label class="mdl-textfield__label" for="discount">Desconto (%)</label>
+                    </div>
+                    <div id="imageUrlsContainer"><!-- As URLs das imagens serão injetadas aqui --></div>
+                    <button type="button" class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent"
+                        id="addImageUrlButton">Adicionar Imagem</button>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="colors" name="colors" required>
+                        <label class="mdl-textfield__label" for="colors">Cores (separadas por vírgulas)</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="text" id="sizes" name="sizes" required>
+                        <label class="mdl-textfield__label" for="sizes">Tamanhos (separados por vírgulas)</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <input class="mdl-textfield__input" type="number" id="shippingCost" name="shippingCost"
+                            step="0.01" required>
+                        <label class="mdl-textfield__label" for="shippingCost">Custo de Envio</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <select class="mdl-textfield__input" id="category" name="category" required></select>
+                        <label class="mdl-textfield__label" for="category">Categoria</label>
+                    </div>
+                    <div class="mdl-textfield mdl-js-textfield mdl-textfield--floating-label">
+                        <select class="mdl-textfield__input" id="isOutOfStock" name="isOutOfStock" required>
+                            <option value="false">Não</option>
+                            <option value="true">Sim</option>
+                        </select>
+                        <label class="mdl-textfield__label" for="isOutOfStock">Fora de Estoque</label>
+                    </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            M.updateTextFields();
-            M.FormSelect.init(document.querySelectorAll('select'));
+                    <button type="submit"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--colored">Salvar</button>
+                    <button type="button" id="deleteProduct"
+                        class="mdl-button mdl-js-button mdl-button--raised mdl-button--accent">Excluir
+                        Produto</button>
+                </form>
+            </div>
+        </main>
 
-            loadCategories();
 
-            const urlParams = new URLSearchParams(window.location.search);
-            const productId = urlParams.get('id');
+        <script defer src="https://code.getmdl.io/1.3.0/material.min.js"></script>
+        <script>
+            document.addEventListener('DOMContentLoaded', () => {
+                const loadCategories = async () => {
+                    try {
+                        const response = await fetch('http://45.174.192.150:3000/api/categories');
+                        const categories = await response.json();
 
-            if (productId) {
-                fetchProductDetails(productId);
-            }
+                        const categorySelect = document.getElementById('category');
+                        categorySelect.innerHTML = '<option value="" disabled selected>Escolha uma Categoria</option>';
 
-            document.getElementById('editProductForm').addEventListener('submit', async (event) => {
-                event.preventDefault();
-                updateProduct();
+                        categories.forEach(category => {
+                            const option = document.createElement('option');
+                            option.value = category;
+                            option.textContent = category;
+                            categorySelect.appendChild(option);
+                        });
+
+                        componentHandler.upgradeElement(categorySelect);
+                    } catch (error) {
+                        showMessage('Erro ao carregar categorias: ' + error.message, 'error');
+                    }
+                };
+
+                const fetchProductDetails = async (productId) => {
+                    try {
+                        const response = await fetch(`http://45.174.192.150:3000/api/products/${productId}`);
+                        const product = await response.json();
+
+                        if (product.message) {
+                            showMessage('Produto não encontrado', 'error');
+                        } else {
+                            fillProductForm(product);
+                        }
+                    } catch (error) {
+                        showMessage('Erro ao buscar produto: ' + error.message, 'error');
+                    }
+                };
+
+                const fillProductForm = (product) => {
+                    const productIdInput = document.getElementById('productId');
+                    const titleInput = document.getElementById('title');
+                    const descriptionInput = document.getElementById('description');
+                    const priceInput = document.getElementById('price');
+                    const discountInput = document.getElementById('discount');
+                    const colorsInput = document.getElementById('colors');
+                    const sizesInput = document.getElementById('sizes');
+                    const shippingCostInput = document.getElementById('shippingCost');
+                    const categorySelect = document.getElementById('category');
+                    const isOutOfStockSelect = document.getElementById('isOutOfStock');
+
+                    if (productIdInput) productIdInput.value = product.id;
+                    if (titleInput) titleInput.value = product.title;
+                    if (descriptionInput) descriptionInput.value = product.description;
+                    if (priceInput) priceInput.value = product.price;
+                    if (discountInput) discountInput.value = product.discount;
+                    if (colorsInput) colorsInput.value = product.colors.join(', ');
+                    if (sizesInput) sizesInput.value = product.sizes.join(', ');
+                    if (shippingCostInput) shippingCostInput.value = product.shippingCost;
+                    if (categorySelect) categorySelect.value = product.category;
+                    if (isOutOfStockSelect) isOutOfStockSelect.value = product.isOutOfStock ? 'true' : 'false';
+
+                    // Preservar imagens existentes e adicionar novas
+                    const imageUrlsContainer = document.getElementById('imageUrlsContainer');
+
+                    // Adicionar URLs das imagens existentes
+                    product.imageUrls.forEach(url => {
+                        const container = document.createElement('div');
+                        container.className = 'image-url-container';
+
+                        const input = document.createElement('input');
+                        input.type = 'text';
+                        input.className = 'mdl-textfield__input';
+                        input.value = url;
+                        input.placeholder = 'URL da Imagem';
+                        input.required = true;
+
+                        const button = document.createElement('button');
+                        button.type = 'button';
+                        button.className = 'mdl-button mdl-js-button mdl-button--icon mdl-button--colored';
+                        button.innerHTML = '<i class="material-icons">delete</i>';
+                        button.addEventListener('click', () => {
+                            container.remove();
+                            // Atualize a contagem e visibilidade do botão de adicionar imagem se necessário
+                            updateAddImageUrlButtonVisibility();
+                        });
+
+                        container.appendChild(input);
+                        container.appendChild(button);
+                        imageUrlsContainer.appendChild(container);
+                    });
+
+                    // Se houver uma quantidade máxima de imagens, ajuste o botão de adicionar imagem
+                    updateAddImageUrlButtonVisibility();
+                };
+
+                const showMessage = (message, type) => {
+                    const messageBox = document.getElementById('message');
+                    messageBox.className = `message ${type}`;
+                    messageBox.querySelector('.message-content').textContent = message;
+                    messageBox.style.display = 'block';
+
+                    setTimeout(() => {
+                        messageBox.style.display = 'none';
+                    }, 5000);
+                };
+
+                document.getElementById('editProductForm').addEventListener('submit', async (event) => {
+                    event.preventDefault();
+
+                    try {
+                        const productId = document.getElementById('productId').value;
+
+                        // Coletar URLs das imagens
+                        const existingImageUrls = Array.from(document.querySelectorAll('#imageUrlsContainer .image-url-container input'))
+                            .map(input => input.value.trim());
+
+                        const product = {
+                            title: document.getElementById('title').value,
+                            description: document.getElementById('description').value,
+                            price: parseFloat(document.getElementById('price').value),
+                            discount: parseFloat(document.getElementById('discount').value),
+                            imageUrls: existingImageUrls, // Manter imagens existentes
+                            colors: document.getElementById('colors').value.split(',').map(color => color.trim()),
+                            sizes: document.getElementById('sizes').value.split(',').map(size => size.trim()),
+                            shippingCost: parseFloat(document.getElementById('shippingCost').value),
+                            category: document.getElementById('category').value,
+                            isOutOfStock: document.getElementById('isOutOfStock').value === 'true'
+                        };
+
+                        const response = await fetch(`http://45.174.192.150:3000/api/products/${productId}`, {
+                            method: 'PUT',
+                            headers: {
+                                'Content-Type': 'application/json'
+                            },
+                            body: JSON.stringify(product)
+                        });
+
+                        if (response.ok) {
+                            showMessage('Produto atualizado com sucesso!', 'success');
+                        } else {
+                            showMessage('Erro ao atualizar o produto', 'error');
+                        }
+                    } catch (error) {
+                        showMessage('Erro ao enviar dados: ' + error.message, 'error');
+                    }
+                });
+
+                document.getElementById('deleteProduct').addEventListener('click', async () => {
+                    if (confirm('Tem certeza de que deseja excluir este produto?')) {
+                        try {
+                            const productId = document.getElementById('productId').value;
+
+                            const response = await fetch(`http://45.174.192.150:3000/api/products/${productId}`, {
+                                method: 'DELETE'
+                            });
+
+                            if (response.ok) {
+                                showMessage('Produto excluído com sucesso!', 'success');
+                                document.getElementById('editProductForm').reset();
+                            } else {
+                                showMessage('Erro ao excluir o produto', 'error');
+                            }
+                        } catch (error) {
+                            showMessage('Erro ao excluir o produto: ' + error.message, 'error');
+                        }
+                    }
+                });
+
+                const urlParams = new URLSearchParams(window.location.search);
+                const productId = urlParams.get('id');
+                if (productId) {
+                    fetchProductDetails(productId);
+                }
+
+                loadCategories();
+
+                // Função para atualizar a visibilidade do botão de adicionar imagem
+                const updateAddImageUrlButtonVisibility = () => {
+                    const imageUrlsContainer = document.getElementById('imageUrlsContainer');
+                    const currentInputs = imageUrlsContainer.querySelectorAll('input');
+                    const addImageUrlButton = document.getElementById('addImageUrlButton');
+                    // Se houver 5 ou mais campos de URL de imagem, o botão é escondido
+                    if (currentInputs.length >= 5) {
+                        addImageUrlButton.style.display = 'none';
+                    } else {
+                        addImageUrlButton.style.display = 'block';
+                    }
+                };
+
+                const addImageUrlButton = document.getElementById('addImageUrlButton');
+                const imageUrlsContainer = document.getElementById('imageUrlsContainer');
+
+                addImageUrlButton.addEventListener('click', () => {
+                    const currentInputs = imageUrlsContainer.querySelectorAll('input');
+                    if (currentInputs.length >= 5) {
+                        alert('Você só pode adicionar até 5 imagens.');
+                        return;
+                    }
+
+                    const imageUrlContainer = document.createElement('div');
+                    imageUrlContainer.className = 'image-url-container';
+
+                    const input = document.createElement('input');
+                    input.type = 'text';
+                    input.name = 'imageUrls';
+                    input.placeholder = 'URL da Imagem';
+                    input.className = 'mdl-textfield__input';
+                    imageUrlContainer.appendChild(input);
+
+                    const removeButton = document.createElement('button');
+                    removeButton.type = 'button';
+                    removeButton.className = 'mdl-button mdl-js-button mdl-button--icon mdl-button--colored';
+                    removeButton.innerHTML = '<i class="material-icons">delete</i>';
+                    removeButton.addEventListener('click', () => {
+                        imageUrlsContainer.removeChild(imageUrlContainer);
+                    });
+                    imageUrlContainer.appendChild(removeButton);
+
+                    imageUrlsContainer.appendChild(imageUrlContainer);
+                });
+
+                const darkThemeSwitch = document.getElementById('toggle-theme');
+
+                // Aplica o tema escuro com base na preferência do usuário
+                if (localStorage.getItem('dark-theme') === 'true') {
+                    document.body.classList.add('dark-theme');
+                }
+
+                // Alterna o tema escuro quando o usuário muda a preferência
+                document.getElementById('toggle-theme')?.addEventListener('click', function () {
+                    document.body.classList.toggle('dark-theme');
+                    localStorage.setItem('dark-theme', document.body.classList.contains('dark-theme'));
+                });
             });
-
-            document.getElementById('deleteProduct').addEventListener('click', () => {
-                deleteProduct(productId);
-            });
-        });
-
-        async function fetchProductDetails(productId) {
-            try {
-                const response = await fetch(`http://localhost:3000/api/products/${productId}`);
-                const product = await response.json();
-
-                if (product.message) {
-                    throw new Error(product.message);
-                }
-
-                document.getElementById('productId').value = product.id;
-                document.getElementById('title').value = product.title;
-                document.getElementById('description').value = product.description;
-                document.getElementById('price').value = product.price;
-                document.getElementById('discount').value = product.discount;
-                document.getElementById('imageUrls').value = product.imageUrls.join(',');
-                document.getElementById('colors').value = product.colors.join(',');
-                document.getElementById('sizes').value = product.sizes.join(',');
-                document.getElementById('shippingCost').value = product.shippingCost;
-                document.getElementById('isOutOfStock').value = product.isOutOfStock.toString();
-
-                // Aguarda o carregamento das categorias
-                await loadCategories();
-
-                const categorySelect = document.getElementById('category');
-
-                // Define o valor selecionado
-                // Verifica se a categoria está presente nas opções
-                const options = Array.from(categorySelect.options);
-                const categoryOption = options.find(option => option.value === product.category);
-                if (categoryOption) {
-                    categorySelect.value = product.category;
-                } else {
-                    console.warn('Categoria não encontrada nas opções:', product.category);
-                }
-
-                // Força a re-inicialização do seletor
-                M.FormSelect.init(categorySelect);
-
-            } catch (error) {
-                showMessage('Erro ao buscar dados: ' + error.message, 'error');
-            }
-        }
-        
-        async function updateProduct() {
-            const id = document.getElementById('productId').value;
-            const title = document.getElementById('title').value;
-            const description = document.getElementById('description').value;
-            const price = document.getElementById('price').value;
-            const discount = document.getElementById('discount').value;
-            const imageUrls = document.getElementById('imageUrls').value.split(',');
-            const colors = document.getElementById('colors').value.split(',');
-            const sizes = document.getElementById('sizes').value.split(',');
-            const shippingCost = document.getElementById('shippingCost').value;
-            const category = document.getElementById('category').value;
-            const isOutOfStock = document.getElementById('isOutOfStock').value === 'true';
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/products/${id}`, {
-                    method: 'PUT',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        title,
-                        description,
-                        price,
-                        discount,
-                        imageUrls,
-                        colors,
-                        sizes,
-                        shippingCost,
-                        category,
-                        isOutOfStock
-                    })
-                });
-                const result = await response.json();
-
-                if (result.message) {
-                    throw new Error(result.message);
-                }
-
-                showMessage('Produto atualizado com sucesso!', 'success');
-            } catch (error) {
-                showMessage('Erro ao atualizar produto: ' + error.message, 'error');
-            }
-        }
-
-        async function deleteProduct(productId) {
-            if (!confirm('Tem certeza de que deseja excluir este produto?')) {
-                return;
-            }
-
-            try {
-                const response = await fetch(`http://localhost:3000/api/products/${productId}`, {
-                    method: 'DELETE'
-                });
-                const result = await response.json();
-
-                if (result.message) {
-                    throw new Error(result.message);
-                }
-
-                showMessage('Produto excluído com sucesso!', 'success');
-                // Redireciona para a página inicial após a exclusão
-                setTimeout(() => window.location.href = 'index.html', 2000);
-            } catch (error) {
-                showMessage('Erro ao excluir produto: ' + error.message, 'error');
-            }
-        }
-
-        function showMessage(message, type) {
-            const messageDiv = document.getElementById('message');
-            const messageContent = messageDiv.querySelector('.message-content');
-            messageContent.textContent = message;
-            messageDiv.className = `message ${type}`;
-            messageDiv.style.display = 'block';
-            setTimeout(() => {
-                messageDiv.style.opacity = 0;
-                setTimeout(() => {
-                    messageDiv.style.display = 'none';
-                    messageDiv.style.opacity = 1;
-                }, 500);
-            }, 3000);
-        }
-
-        async function loadCategories() {
-            try {
-                const response = await fetch('http://localhost:3000/api/categories');
-                const categories = await response.json();
-
-                const categorySelect = document.getElementById('category');
-                categorySelect.innerHTML = '<option value="" disabled selected>Escolha uma Categoria</option>';
-
-                categories.forEach(category => {
-                    const option = document.createElement('option');
-                    option.value = category;
-                    option.textContent = category;
-                    categorySelect.appendChild(option);
-                });
-
-                M.FormSelect.init(categorySelect);
-            } catch (error) {
-                showMessage('Erro ao carregar categorias: ' + error.message, 'error');
-            }
-        }
-    </script>
+        </script>
 </body>
 
 </html>
