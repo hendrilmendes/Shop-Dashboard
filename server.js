@@ -3,6 +3,10 @@ const mongoose = require('mongoose');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const qr = require('qrcode');
+const { exec } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const multer = require('multer');
 
 const app = express();
 const port = 3000;
@@ -140,6 +144,23 @@ app.post('/api/categories', async (req, res) => {
     }
 });
 
+// Endpoint para excluir uma categoria
+app.delete('/api/categories/:name', async (req, res) => {
+    const { name } = req.params;
+
+    try {
+        // Procura e exclui a categoria pelo nome
+        const deletedCategory = await Category.findOneAndDelete({ name });
+        if (!deletedCategory) {
+            return res.status(404).json({ message: 'Categoria não encontrada' });
+        }
+        res.status(200).json({ message: 'Categoria excluída com sucesso!' });
+    } catch (error) {
+        console.error('Erro ao excluir categoria:', error);
+        res.status(500).json({ message: 'Erro ao excluir categoria', error });
+    }
+});
+
 // Endpoint para atualizar um produto
 app.put('/api/products/:id', async (req, res) => {
     const { id } = req.params;
@@ -241,6 +262,75 @@ app.delete('/api/clear', async (req, res) => {
     }
 });
 
+// Configuração do multer para armazenamento dos arquivos
+const storage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        cb(null, 'backup/'); // Pasta onde os arquivos serão armazenados
+    },
+    filename: (req, file, cb) => {
+        cb(null, file.originalname); // Nome original do arquivo
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// Função para realizar o backup do MongoDB
+app.get('/api/backup', (req, res) => {
+    const backupPath = './backup';
+    const dbName = 'shop';
+    const timestamp = new Date().toISOString().replace(/:/g, '-');
+    const backupFile = `${backupPath}/backup-${dbName}-${timestamp}.gz`;
+
+    if (!fs.existsSync(backupPath)) {
+        fs.mkdirSync(backupPath);
+    }
+
+    exec(`mongodump --db=${dbName} --archive=${backupFile} --gzip`, (error, stdout, stderr) => {
+        if (error) {
+            console.error('Error during backup:', error);
+            return res.status(500).json({ message: 'Erro ao realizar backup', error });
+        }
+        res.status(200).json({ message: 'Backup realizado com sucesso', file: backupFile });
+    });
+});
+
+// Função para restaurar o backup do MongoDB
+app.post('/api/restore', upload.single('backupFile'), (req, res) => {
+    const backupFile = req.file.path; // O caminho do arquivo de backup enviado
+
+    console.log('Received backupFile:', backupFile);
+
+    if (!backupFile) {
+        return res.status(400).json({ message: 'Arquivo de backup não fornecido ou inválido' });
+    }
+
+    const dbName = 'shop';
+
+    // Executa o comando de restauração
+    exec(`mongorestore --db=${dbName} --archive=${backupFile} --gzip --drop`, (error, stdout, stderr) => {
+        if (error) {
+            console.error('Error during restore:', error);
+            return res.status(500).json({ message: 'Erro ao restaurar backup', error });
+        }
+        // Remove o arquivo temporário após a restauração
+        fs.unlink(backupFile, (err) => {
+            if (err) console.error('Error deleting file:', err);
+        });
+        res.status(200).json({ message: 'Backup restaurado com sucesso' });
+    });
+});
+
+// Endpoint para o changelog
+app.get('/changelog', (req, res) => {
+    const filePath = path.join(__dirname, 'CHANGELOG.md');
+    fs.readFile(filePath, 'utf8', (err, data) => {
+      if (err) {
+        res.status(500).send('Erro ao ler o changelog.');
+        return;
+      }
+      res.send(data);
+    });
+  });
 app.listen(port, () => {
     console.log(`Server running at http://localhost:${port}`);
 });
