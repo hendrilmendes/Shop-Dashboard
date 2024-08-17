@@ -222,118 +222,119 @@ class _AddProductScreenState extends State<AddProductScreen> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: ListView(
-            children: [
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(labelText: 'Título'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(labelText: 'Descrição'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _priceController,
-                decoration: const InputDecoration(labelText: 'Preço'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _discountController,
-                decoration: const InputDecoration(labelText: 'Desconto (%)'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _shippingCostController,
-                decoration: const InputDecoration(labelText: 'Custo de Envio'),
-                keyboardType:
-                    const TextInputType.numberWithOptions(decimal: true),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _colorsController,
-                decoration: const InputDecoration(
-                    labelText: 'Cores (separadas por vírgulas)'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              TextFormField(
-                controller: _sizesController,
-                decoration: const InputDecoration(
-                    labelText: 'Tamanhos (separados por vírgulas)'),
-                validator: (value) =>
-                    value!.isEmpty ? 'Campo obrigatório' : null,
-              ),
-              const SizedBox(height: 16),
-              ..._imageUrlControllers.asMap().entries.map((entry) {
-                final index = entry.key;
-                final controller = entry.value;
-                return Row(
-                  children: [
-                    Expanded(
-                      child: TextFormField(
-                        controller: controller,
-                        decoration:
-                            const InputDecoration(labelText: 'URL da Imagem'),
-                        validator: (value) =>
-                            value!.isEmpty ? 'Campo obrigatório' : null,
+          child: SingleChildScrollView(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                TextFormField(
+                  controller: _titleController,
+                  decoration: const InputDecoration(labelText: 'Título'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                TextFormField(
+                  controller: _descriptionController,
+                  decoration: const InputDecoration(labelText: 'Descrição'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                TextFormField(
+                  controller: _priceController,
+                  decoration: const InputDecoration(labelText: 'Preço'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                TextFormField(
+                  controller: _discountController,
+                  decoration: const InputDecoration(labelText: 'Desconto (%)'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                TextFormField(
+                  controller: _shippingCostController,
+                  decoration:
+                      const InputDecoration(labelText: 'Custo de Envio'),
+                  keyboardType:
+                      const TextInputType.numberWithOptions(decimal: true),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                TextFormField(
+                  controller: _colorsController,
+                  decoration: const InputDecoration(
+                      labelText: 'Cores (separadas por vírgulas)'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                TextFormField(
+                  controller: _sizesController,
+                  decoration: const InputDecoration(
+                      labelText: 'Tamanhos (separados por vírgulas)'),
+                  validator: (value) =>
+                      value!.isEmpty ? 'Campo obrigatório' : null,
+                ),
+                const SizedBox(height: 16),
+                ..._imageUrlControllers.asMap().entries.map((entry) {
+                  final index = entry.key;
+                  final controller = entry.value;
+                  return Row(
+                    children: [
+                      Expanded(
+                        child: TextFormField(
+                          controller: controller,
+                          decoration:
+                              const InputDecoration(labelText: 'URL da Imagem'),
+                          validator: (value) =>
+                              value!.isEmpty ? 'Campo obrigatório' : null,
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: const Icon(Icons.remove_circle),
-                      color: Colors.red,
-                      onPressed: () => _removeImageUrlField(index),
-                    ),
-                  ],
-                );
-              }),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _addImageUrlField,
-                child: const Text('Adicionar Imagem'),
-              ),
-              const SizedBox(height: 16),
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(labelText: 'Categoria'),
-                items: _categories.map((category) {
-                  return DropdownMenuItem(
-                    value: category,
-                    child: Text(category),
+                      IconButton(
+                        icon: const Icon(Icons.remove_circle),
+                        color: Colors.red,
+                        onPressed: () => _removeImageUrlField(index),
+                      ),
+                    ],
                   );
-                }).toList(),
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value;
-                  });
-                },
-                validator: (value) =>
-                    value == null ? 'Campo obrigatório' : null,
-              ),
-              ElevatedButton(
-                onPressed: _showAddCategoryDialog,
-                child: const Text('Adicionar Categoria'),
-              ),
-              const SizedBox(height: 16),
-              ElevatedButton(
-                onPressed: _submitForm,
-                child: const Text('Salvar Produto'),
-              ),
-
-                SizedBox(height: 16),
-              Expanded(
-                flex: 1,
-                child: ProductPreview(
+                }),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _addImageUrlField,
+                  child: const Text('Adicionar Imagem'),
+                ),
+                const SizedBox(height: 16),
+                DropdownButtonFormField<String>(
+                  value: _selectedCategory,
+                  decoration: const InputDecoration(labelText: 'Categoria'),
+                  items: _categories.map((category) {
+                    return DropdownMenuItem(
+                      value: category,
+                      child: Text(category),
+                    );
+                  }).toList(),
+                  onChanged: (value) {
+                    setState(() {
+                      _selectedCategory = value;
+                    });
+                  },
+                  validator: (value) =>
+                      value == null ? 'Campo obrigatório' : null,
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _showAddCategoryDialog,
+                  child: const Text('Adicionar Categoria'),
+                ),
+                const SizedBox(height: 16),
+                ElevatedButton(
+                  onPressed: _submitForm,
+                  child: const Text('Salvar Produto'),
+                ),
+                const SizedBox(height: 16),
+                ProductPreview(
                   title: _titleController.text,
                   description: _descriptionController.text,
                   price: _priceController.text,
@@ -347,9 +348,8 @@ class _AddProductScreenState extends State<AddProductScreen> {
                   sizes: _sizesController.text,
                   shippingCost: _shippingCostController.text,
                 ),
-              ),
-            
-            ],
+              ],
+            ),
           ),
         ),
       ),

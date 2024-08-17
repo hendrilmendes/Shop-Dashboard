@@ -250,156 +250,156 @@ class _EditProductScreenState extends State<EditProductScreen> {
                         style: TextStyle(color: _messageColor, fontSize: 16),
                       ),
                     ),
-                  Form(
-                    key: _formKey,
-                    child: Expanded(
-                      child: ListView(
-                        children: [
-                          TextFormField(
-                            controller: _titleController,
-                            decoration:
-                                const InputDecoration(labelText: 'Título'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira um título';
-                              }
-                              return null;
-                            },
-                          ),
-                          TextFormField(
-                            controller: _descriptionController,
-                            decoration:
-                                const InputDecoration(labelText: 'Descrição'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira uma descrição';
-                              }
-                              return null;
-                            },
-                          ),
-                          TextFormField(
-                            controller: _priceController,
-                            decoration:
-                                const InputDecoration(labelText: 'Preço'),
-                            keyboardType: TextInputType.number,
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, insira um preço';
-                              }
-                              return null;
-                            },
-                          ),
-                          TextFormField(
-                            controller: _discountController,
-                            decoration:
-                                const InputDecoration(labelText: 'Desconto'),
-                            keyboardType: TextInputType.number,
-                          ),
-                          TextFormField(
-                            controller: _colorsController,
-                            decoration:
-                                const InputDecoration(labelText: 'Cores'),
-                          ),
-                          TextFormField(
-                            controller: _sizesController,
-                            decoration:
-                                const InputDecoration(labelText: 'Tamanhos'),
-                          ),
-                          TextFormField(
-                            controller: _shippingCostController,
-                            decoration:
-                                const InputDecoration(labelText: 'Frete'),
-                            keyboardType: TextInputType.number,
-                          ),
-                          Row(
-                            children: [
-                              const Text('Sem Estoque:'),
-                              Switch.adaptive(
-                                value: _isOutOfStock,
-                                onChanged: (value) {
-                                  setState(() {
-                                    _isOutOfStock = value;
-                                  });
-                                },
-                              ),
-                            ],
-                          ),
-                          DropdownButtonFormField<String>(
-                            value: _selectedCategory,
-                            items: _categories.map((category) {
-                              return DropdownMenuItem<String>(
-                                value: category,
-                                child: Text(category),
-                              );
-                            }).toList(),
-                            onChanged: (value) {
-                              setState(() {
-                                _selectedCategory = value;
-                              });
-                            },
-                            decoration:
-                                const InputDecoration(labelText: 'Categoria'),
-                            validator: (value) {
-                              if (value == null || value.isEmpty) {
-                                return 'Por favor, selecione uma categoria';
-                              }
-                              return null;
-                            },
-                          ),
-                          ..._imageUrls.asMap().entries.map((entry) {
-                            int index = entry.key;
-                            TextEditingController controller = entry.value;
-                            return Row(
+                  Expanded(
+                    child: SingleChildScrollView(
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          children: [
+                            TextFormField(
+                              controller: _titleController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Título'),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira um título';
+                                }
+                                return null;
+                              },
+                            ),
+                            TextFormField(
+                              controller: _descriptionController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Descrição'),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira uma descrição';
+                                }
+                                return null;
+                              },
+                            ),
+                            TextFormField(
+                              controller: _priceController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Preço'),
+                              keyboardType: TextInputType.number,
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira um preço';
+                                }
+                                return null;
+                              },
+                            ),
+                            TextFormField(
+                              controller: _discountController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Desconto'),
+                              keyboardType: TextInputType.number,
+                            ),
+                            TextFormField(
+                              controller: _colorsController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Cores'),
+                            ),
+                            TextFormField(
+                              controller: _sizesController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Tamanhos'),
+                            ),
+                            TextFormField(
+                              controller: _shippingCostController,
+                              decoration:
+                                  const InputDecoration(labelText: 'Frete'),
+                              keyboardType: TextInputType.number,
+                            ),
+                            Row(
                               children: [
-                                Expanded(
-                                  child: TextFormField(
-                                    controller: controller,
-                                    decoration: InputDecoration(
-                                        labelText:
-                                            'URL da Imagem ${index + 1}'),
-                                    validator: (value) {
-                                      if (value != null &&
-                                          value.isNotEmpty &&
-                                          !_isValidUrl(value)) {
-                                        return 'URL inválido';
-                                      }
-                                      return null;
-                                    },
-                                  ),
-                                ),
-                                IconButton(
-                                  icon: const Icon(Icons.remove_circle),
-                                  color: Colors.red,
-                                  onPressed: () => _removeImageUrlField(index),
+                                const Text('Sem Estoque:'),
+                                Switch.adaptive(
+                                  value: _isOutOfStock,
+                                  onChanged: (value) {
+                                    setState(() {
+                                      _isOutOfStock = value;
+                                    });
+                                  },
                                 ),
                               ],
-                            );
-                          }),
-                          SizedBox(height: 16),
-                          ElevatedButton(
-                            onPressed: _addImageUrlField,
-                            child: const Text('Adicionar URL de Imagem'),
-                          ),
-                          SizedBox(height: 16),
-                          Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              ElevatedButton(
-                                onPressed: _updateProduct,
-                                child: const Text('Atualizar Produto'),
-                              ),
-                              ElevatedButton(
-                                onPressed: _deleteProduct,
-                                style: ElevatedButton.styleFrom(
-                                    backgroundColor: Colors.red),
-                                child: const Text('Excluir Produto'),
-                              ),
-                            ],
-                          ),
-                          SizedBox(height: 16),
-                          Expanded(
-                            flex: 1,
-                            child: ProductPreview(
+                            ),
+                            DropdownButtonFormField<String>(
+                              value: _selectedCategory,
+                              items: _categories.map((category) {
+                                return DropdownMenuItem<String>(
+                                  value: category,
+                                  child: Text(category),
+                                );
+                              }).toList(),
+                              onChanged: (value) {
+                                setState(() {
+                                  _selectedCategory = value;
+                                });
+                              },
+                              decoration:
+                                  const InputDecoration(labelText: 'Categoria'),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, selecione uma categoria';
+                                }
+                                return null;
+                              },
+                            ),
+                            ..._imageUrls.asMap().entries.map((entry) {
+                              int index = entry.key;
+                              TextEditingController controller = entry.value;
+                              return Row(
+                                children: [
+                                  Expanded(
+                                    child: TextFormField(
+                                      controller: controller,
+                                      decoration: InputDecoration(
+                                          labelText:
+                                              'URL da Imagem ${index + 1}'),
+                                      validator: (value) {
+                                        if (value != null &&
+                                            value.isNotEmpty &&
+                                            !_isValidUrl(value)) {
+                                          return 'URL inválido';
+                                        }
+                                        return null;
+                                      },
+                                    ),
+                                  ),
+                                  IconButton(
+                                    icon: const Icon(Icons.remove_circle),
+                                    color: Colors.red,
+                                    onPressed: () =>
+                                        _removeImageUrlField(index),
+                                  ),
+                                ],
+                              );
+                            }).toList(),
+                            const SizedBox(height: 16),
+                            ElevatedButton(
+                              onPressed: _addImageUrlField,
+                              child: const Text('Adicionar URL de Imagem'),
+                            ),
+                            const SizedBox(height: 16),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ElevatedButton(
+                                  onPressed: _updateProduct,
+                                  child: const Text('Atualizar Produto'),
+                                ),
+                                ElevatedButton(
+                                  onPressed: _deleteProduct,
+                                  style: ElevatedButton.styleFrom(
+                                      backgroundColor: Colors.red),
+                                  child: const Text('Excluir Produto'),
+                                ),
+                              ],
+                            ),
+                            const SizedBox(height: 16),
+                            ProductPreview(
                               title: _titleController.text,
                               description: _descriptionController.text,
                               price: _priceController.text,
@@ -408,13 +408,13 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                   .map((controller) => controller.text)
                                   .toList(),
                               selectedCategory: _selectedCategory,
-                              isOutOfStock: false,
+                              isOutOfStock: _isOutOfStock,
                               colors: _colorsController.text,
                               sizes: _sizesController.text,
                               shippingCost: _shippingCostController.text,
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),

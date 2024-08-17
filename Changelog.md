@@ -1,5 +1,14 @@
 ======================================================
-#### 1.0.8 - Em desenvolvimento
+#### 1.0.10
+
+Novo
+- 
+
+Correções/Melhorias:
+- Correções de Bugs
+
+======================================================
+#### 1.0.8
 
 Novo
 - Migrado frontend para o Flutter
@@ -12,7 +21,7 @@ Correções/Melhorias:
 - Ajustes visuais
 
 ======================================================
-#### 1.0.5-alpha - 05/08/2024
+#### 1.0.5-alpha
 
 Novo:
 - Versão inicial
