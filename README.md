@@ -1,6 +1,6 @@
 # Shop Backend
 
-Backend do app Shop usando Flutter para front, node.js para back e Mongo para banco de dados.
+Backend do app Shop usando Flutter para front, Dart para back e sqlite3 para banco de dados.
 ### Screenshots
 
 <img src="screenshots/preview.png?raw=true">

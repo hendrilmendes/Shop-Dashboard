@@ -11,7 +11,7 @@ class Updater {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://api.github.com/repos/hendrilmendes/News-Droid/releases/latest'),
+            'https://api.github.com/repos/hendrilmendes/Shop-Backend/releases/latest'),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
         },
@@ -32,14 +32,14 @@ class Updater {
             // ignore: use_build_context_synchronously
             context: context,
             builder: (context) => AlertDialog(
-              title: Text("Nova versão disponível"),
+              title: const Text("Nova versão disponível"),
               content: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Text(
+                  const Text(
                     "Novidades",
-                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    style: TextStyle(fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 5),
                   Expanded(
@@ -54,7 +54,7 @@ class Updater {
               actions: <Widget>[
                 TextButton(
                   onPressed: () => Navigator.pop(context),
-                  child: Text("Cancelar"),
+                  child: const Text("Cancelar"),
                 ),
                 FilledButton(
                   onPressed: () {
@@ -74,7 +74,7 @@ class Updater {
                       Navigator.pop(context); // Fecha o diálogo interno
                     }
                   },
-                  child: Text("Baixar"),
+                  child: const Text("Baixar"),
                 ),
               ],
             ),
@@ -84,15 +84,15 @@ class Updater {
               // ignore: use_build_context_synchronously
               context: context,
               builder: (context) => AlertDialog(
-                title: Text("Nenhuma nova versão disponível"),
-                content: Text(
+                title: const Text("Nenhuma nova versão disponível"),
+                content: const Text(
                   "Você já esta na versão mais recente",
-                  style: const TextStyle(fontSize: 16.0),
+                  style: TextStyle(fontSize: 16.0),
                 ),
                 actions: <Widget>[
                   FilledButton(
                     onPressed: () => Navigator.pop(context),
-                    child: Text("Ok"),
+                    child: const Text("Ok"),
                   ),
                 ],
               ),

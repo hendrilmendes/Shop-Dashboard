@@ -1,3 +1,4 @@
+import 'package:dashboard/api/api.dart';
 import 'package:dashboard/models/order.dart';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
@@ -11,7 +12,7 @@ class OrderProvider with ChangeNotifier {
   Future<void> fetchOrders() async {
     try {
       final response =
-          await http.get(Uri.parse('http://45.174.192.150:3000/api/orders'));
+          await http.get(Uri.parse('$apiUrl/api/orders'));
       final List<dynamic> extractedData = json.decode(response.body);
 
       if (extractedData.isEmpty) {

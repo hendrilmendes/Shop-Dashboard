@@ -1,4 +1,5 @@
 // ignore_for_file: use_build_context_synchronously
+import 'package:dashboard/api/api.dart';
 import 'package:dashboard/screens/preview/preview.dart';
 import 'package:dashboard/screens/products/desktop/add.dart';
 import 'package:flutter/foundation.dart';
@@ -64,16 +65,28 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
   Future<void> _loadCategories() async {
     try {
-      final response = await http
-          .get(Uri.parse('http://45.174.192.150:3000/api/categories'));
+      print('Iniciando o carregamento das categorias...');
+      final response = await http.get(Uri.parse('$apiUrl/api/categories'));
+
+      print('Resposta recebida com status: ${response.statusCode}');
       if (response.statusCode == 200) {
+        final List<dynamic> categoriesJson = json.decode(response.body);
+        print('Categorias recebidas: $categoriesJson');
+
         setState(() {
-          _categories = List<String>.from(json.decode(response.body));
+          _categories = categoriesJson.map((category) {
+            return category['name'].toString();
+          }).toList();
         });
+
+        print('Categorias carregadas com sucesso: $_categories');
       } else {
+        print(
+            'Erro ao carregar categorias. Código de status: ${response.statusCode}');
         _showMessage('Erro ao carregar categorias', 'error');
       }
     } catch (e) {
+      print('Exceção ao carregar categorias: $e');
       _showMessage('Erro ao carregar categorias: $e', 'error');
     }
   }
@@ -81,13 +94,14 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Future<void> _addCategory(String category) async {
     try {
       final response = await http.post(
-        Uri.parse('http://45.174.192.150:3000/api/categories'),
+        Uri.parse('$apiUrl/api/categories'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'category': category}),
+        body: json.encode({'name': category}),
       );
 
+      final responseData = json.decode(response.body);
+
       if (response.statusCode == 200 || response.statusCode == 201) {
-        final responseData = json.decode(response.body);
         _showMessage(responseData['message'], 'success');
         setState(() {
           _categories.add(category);
@@ -95,7 +109,6 @@ class _AddProductScreenState extends State<AddProductScreen> {
         Navigator.of(context).pop();
         _loadCategories(); // Atualiza a lista de categorias
       } else {
-        final responseData = json.decode(response.body);
         _showMessage(
             'Erro ao adicionar categoria: ${responseData['message']}', 'error');
       }
@@ -174,7 +187,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
 
       try {
         final response = await http.post(
-          Uri.parse('http://45.174.192.150:3000/api/products'),
+          Uri.parse('$apiUrl/api/products'),
           headers: {'Content-Type': 'application/json'},
           body: requestBody,
         );
@@ -216,7 +229,12 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _buildSmallScreenLayout(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastrar Produtos'),
+        title:  Text(
+          'Cadastrar Produtos',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -324,14 +342,18 @@ class _AddProductScreenState extends State<AddProductScreen> {
                       value == null ? 'Campo obrigatório' : null,
                 ),
                 const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _showAddCategoryDialog,
-                  child: const Text('Adicionar Categoria'),
-                ),
-                const SizedBox(height: 16),
-                ElevatedButton(
-                  onPressed: _submitForm,
-                  child: const Text('Salvar Produto'),
+                Row(
+                  children: [
+                    ElevatedButton(
+                      onPressed: _showAddCategoryDialog,
+                      child: const Text('Adicionar Categoria'),
+                    ),
+                    const SizedBox(width: 16),
+                    ElevatedButton(
+                      onPressed: _submitForm,
+                      child: const Text('Salvar Produto'),
+                    ),
+                  ],
                 ),
                 const SizedBox(height: 16),
                 ProductPreview(

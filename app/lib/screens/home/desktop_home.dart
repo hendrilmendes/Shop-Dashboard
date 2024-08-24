@@ -9,6 +9,7 @@ class DesktopHomeScreen extends StatefulWidget {
   const DesktopHomeScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _DesktopHomeScreenState createState() => _DesktopHomeScreenState();
 }
 

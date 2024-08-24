@@ -1,7 +1,29 @@
-limpar dados
+Apagar DB
 
 curl -X DELETE http://localhost:3000/api/clear
+------------
 
-iniciar server
+Iniciar server
 
-node server.js 
+dart run lib/server.dart
+------------
+
+Iniciar front
+
+flutter run --release -d web-server
+
+------------
+
+Instalar SQL Lite
+
+Linux: sudo apt install sqlite3
+Windows: winget install sqlite.sqlite
+macOS: 
+/bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+depois
+brew install sqlite
+------------
+
+Gestão do DB
+
+https://sqlitebrowser.org/dl/

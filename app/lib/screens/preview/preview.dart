@@ -13,7 +13,7 @@ class ProductPreview extends StatelessWidget {
   final String shippingCost;
 
   const ProductPreview({
-    Key? key,
+    super.key,
     required this.title,
     required this.description,
     required this.price,
@@ -24,7 +24,7 @@ class ProductPreview extends StatelessWidget {
     required this.colors,
     required this.sizes,
     required this.shippingCost,
-  }) : super(key: key);
+  });
 
   @override
   Widget build(BuildContext context) {

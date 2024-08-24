@@ -2,10 +2,11 @@
 #### 1.0.10
 
 Novo
-- 
+- Migrado backend para o Dart
 
 Correções/Melhorias:
 - Correções de Bugs
+- Ajustes visuais
 
 ======================================================
 #### 1.0.8

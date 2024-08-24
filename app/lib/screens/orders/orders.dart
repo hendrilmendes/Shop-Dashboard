@@ -66,7 +66,12 @@ class _OrdersScreenState extends State<OrdersScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Pedidos'),
+        title: Text(
+          'Pedidos',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -85,7 +90,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           final formatter = NumberFormat('#,##0.00', 'pt_BR');
 
           if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(child: CircularProgressIndicator.adaptive());
           } else if (snapshot.error != null) {
             return const Center(
               child: Text(

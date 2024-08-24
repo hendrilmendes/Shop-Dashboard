@@ -1,4 +1,5 @@
 import 'package:dashboard/widgets/products/desktop/card.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:cached_network_image/cached_network_image.dart';
@@ -15,7 +16,9 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        print('Current maxWidth: ${constraints.maxWidth}');
+        if (kDebugMode) {
+          print('Current maxWidth: ${constraints.maxWidth}');
+        }
         if (constraints.maxWidth < 256.75) {
           return _buildSmallScreenLayout(context);
         } else {

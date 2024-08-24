@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:dashboard/api/api.dart';
 import 'package:dashboard/models/products.dart';
 import 'package:dashboard/screens/products/desktop/list.dart';
 import 'package:dashboard/screens/products/edit.dart';
@@ -38,7 +39,7 @@ class _ProductsPageState extends State<ProductsPage>
   }
 
   void fetchProducts() async {
-    const url = 'http://45.174.192.150:3000/api/products';
+    const url = '$apiUrl/api/products';
     try {
       if (kDebugMode) {
         print('Fetching products from: $url');
@@ -47,8 +48,17 @@ class _ProductsPageState extends State<ProductsPage>
 
       if (response.statusCode == 200) {
         final List<dynamic> productList = json.decode(response.body);
+        if (kDebugMode) {
+          print('Product List JSON: $productList'); // Log do JSON bruto
+        }
         setState(() {
-          products = productList.map((json) => Product.fromJson(json)).toList();
+          products = productList.map((json) {
+            final product = Product.fromJson(json);
+            if (kDebugMode) {
+              print('Product object: $product'); // Log do objeto Produto
+            }
+            return product;
+          }).toList();
           filteredProducts = products;
           isLoading = false;
         });
@@ -103,7 +113,12 @@ class _ProductsPageState extends State<ProductsPage>
   Widget _buildSmallScreenLayout(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produtos Cadastrados'),
+        title: Text(
+          'Produtos Cadastrados',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
       ),
       body: Column(
         children: [
@@ -130,7 +145,7 @@ class _ProductsPageState extends State<ProductsPage>
           ),
           isLoading
               ? const Expanded(
-                  child: Center(child: CircularProgressIndicator()),
+                  child: Center(child: CircularProgressIndicator.adaptive()),
                 )
               : Expanded(
                   child: filteredProducts.isEmpty

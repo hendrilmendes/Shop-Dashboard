@@ -1,6 +1,9 @@
 import 'dart:io';
+import 'dart:html' as html;
+import 'package:dashboard/api/api.dart';
 import 'package:dashboard/screens/settings/desktop/settings.dart';
 import 'package:dashboard/updater/updater.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
@@ -35,42 +38,90 @@ class _SettingsScreenState extends State<SettingsScreen> {
 
   Future<void> _backup() async {
     try {
-      final response =
-          await http.get(Uri.parse('http://45.174.192.150:3000/api/backup'));
-
+      final response = await http.get(Uri.parse('$apiUrl/api/backup'));
       if (response.statusCode == 200) {
-        final message = response.body;
-        _showSnackBar('Backup realizado com sucesso! $message', Colors.green);
+        final bytes = response.bodyBytes;
+
+        if (kIsWeb) {
+          _backupForWeb(bytes);
+        } else {
+          _backupForOtherPlatforms(bytes);
+        }
       } else {
-        _showSnackBar('Erro ao realizar backup', Colors.red);
+        _showSnackBar('Erro ao realizar backup. Código: ${response.statusCode}',
+            Colors.red);
       }
     } catch (error) {
       _showSnackBar('Erro ao realizar backup: $error', Colors.red);
+      print('Erro ao realizar backup: $error');
+    }
+  }
+
+  void _backupForWeb(Uint8List bytes) {
+    final blob = html.Blob([bytes]);
+    final url = html.Url.createObjectUrlFromBlob(blob);
+
+    // Create an anchor element, set attributes, and simulate a click to trigger the download
+    html.AnchorElement(href: url)
+      ..setAttribute('download', 'database-backup.sqlite')
+      ..click();
+
+    // Clean up the object URL
+    html.Url.revokeObjectUrl(url);
+
+    // Show a success message
+    _showSnackBar('Backup realizado com sucesso!', Colors.green);
+  }
+
+  Future<void> _backupForOtherPlatforms(Uint8List bytes) async {
+    final result = await FilePicker.platform.saveFile(
+      dialogTitle: 'Salvar backup',
+      fileName: 'database-backup.sqlite',
+    );
+
+    if (result != null) {
+      final file = File(result);
+      await file.writeAsBytes(bytes);
+      _showSnackBar('Backup realizado com sucesso!', Colors.green);
+    } else {
+      _showSnackBar('Backup não salvo', Colors.orange);
     }
   }
 
   Future<void> _restore() async {
-    final result = await FilePicker.platform
-        .pickFiles(type: FileType.custom, allowedExtensions: ['gz']);
+    final result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['sqlite'],
+    );
 
     if (result != null && result.files.isNotEmpty) {
-      final file = File(result.files.single.path!);
+      final bytes = result.files.single.bytes;
 
-      try {
-        final request = http.MultipartRequest(
-            'POST', Uri.parse('http://45.174.192.150:3000/api/restore'))
-          ..files
-              .add(await http.MultipartFile.fromPath('backupFile', file.path));
+      if (bytes != null) {
+        try {
+          final request =
+              http.MultipartRequest('POST', Uri.parse('$apiUrl/api/restore'))
+                ..files.add(http.MultipartFile.fromBytes(
+                  'backupFile',
+                  bytes,
+                  filename: 'database-backup.sqlite',
+                ));
 
-        final response = await request.send();
+          final response = await request.send();
+          final responseBody = await response.stream.bytesToString();
 
-        if (response.statusCode == 200) {
-          _showSnackBar('Backup restaurado com sucesso!', Colors.green);
-        } else {
-          _showSnackBar('Erro ao restaurar backup', Colors.red);
+          if (response.statusCode == 200) {
+            _showSnackBar('Backup restaurado com sucesso!', Colors.green);
+          } else {
+            _showSnackBar(
+                'Erro ao restaurar backup: ${response.statusCode}', Colors.red);
+            print('Resposta do servidor: $responseBody');
+          }
+        } catch (error) {
+          _showSnackBar('Erro ao restaurar backup: $error', Colors.red);
         }
-      } catch (error) {
-        _showSnackBar('Erro ao restaurar backup: $error', Colors.red);
+      } else {
+        _showSnackBar('Erro ao ler o arquivo.', Colors.red);
       }
     } else {
       _showSnackBar(
@@ -104,7 +155,12 @@ class _SettingsScreenState extends State<SettingsScreen> {
     final themeModel = Provider.of<ThemeModel>(context);
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurações'),
+        title: Text(
+          'Configurações',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
       ),
       body: ListView(
         padding: const EdgeInsets.all(16),

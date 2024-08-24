@@ -1,3 +1,4 @@
+import 'package:dashboard/api/api.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -6,13 +7,12 @@ class ManageCategoriesScreen extends StatefulWidget {
   const ManageCategoriesScreen({super.key});
 
   @override
-  // ignore: library_private_types_in_public_api
   _ManageCategoriesScreenState createState() => _ManageCategoriesScreenState();
 }
 
 class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   final TextEditingController _categoryController = TextEditingController();
-  List<String> _categories = [];
+  List<Map<String, dynamic>> _categories = [];
   bool _isLoading = false;
 
   @override
@@ -31,13 +31,17 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     setState(() {
       _isLoading = true;
     });
-
     try {
-      final response = await http
-          .get(Uri.parse('http://45.174.192.150:3000/api/categories'));
+      final response = await http.get(Uri.parse('$apiUrl/api/categories'));
       if (response.statusCode == 200) {
+        final List<dynamic> categoriesJson = json.decode(response.body);
         setState(() {
-          _categories = List<String>.from(json.decode(response.body));
+          _categories = categoriesJson.map((category) {
+            return {
+              'id': category['id'],
+              'name': category['name'].toString(),
+            };
+          }).toList();
         });
       } else {
         _showMessage('Erro ao carregar categorias', 'error');
@@ -52,23 +56,24 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   }
 
   Future<void> _addCategory(String category) async {
-    final newCategory = _categoryController.text.trim();
-    if (newCategory.isEmpty) return;
+    if (category.isEmpty) {
+      _showMessage('O nome da categoria não pode ser vazio.', 'error');
+      return;
+    }
 
     try {
       final response = await http.post(
-        Uri.parse('http://45.174.192.150:3000/api/categories'),
+        Uri.parse('$apiUrl/api/categories'),
         headers: {'Content-Type': 'application/json'},
-        body: json.encode({'category': category}),
+        body: json.encode({'name': category}),
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
         final responseData = json.decode(response.body);
         _showMessage(responseData['message'], 'success');
         setState(() {
-          _categories.add(category);
+          _categories.add({'id': responseData['id'], 'name': category});
         });
-        // ignore: use_build_context_synchronously
         Navigator.of(context).pop();
         _loadCategories(); // Atualiza a lista de categorias
       } else {
@@ -81,38 +86,43 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
     }
   }
 
-  Future<void> _deleteCategory(String category) async {
+  Future<void> _deleteCategory(int id) async {
     try {
       final response = await http.delete(
-        Uri.parse('http://45.174.192.150:3000/api/categories/$category'),
+        Uri.parse('$apiUrl/api/categories/$id'),
         headers: {'Content-Type': 'application/json'},
       );
 
-      if (response.statusCode == 200) {
-        final responseData = json.decode(response.body);
-        _showMessage(responseData['message'], 'success');
-        setState(() {
-          _categories.remove(category);
-        });
+      if (response.statusCode == 200 || response.statusCode == 204) {
+        String message = 'Categoria excluída com sucesso.';
+        if (response.statusCode == 200) {
+          // Se a resposta contém uma mensagem, decodifique o JSON
+          final responseData = json.decode(response.body);
+          message = responseData['message'] ?? message;
+        }
+        _showMessage(message, 'success');
+        // Recarregar categorias após exclusão
+        await _loadCategories();
       } else {
         final responseData = json.decode(response.body);
         _showMessage(
-            'Erro ao excluir categoria: ${responseData['message']}', 'error');
+            'Erro ao excluir categoria: ${responseData['message'] ?? 'Desconhecido'}',
+            'error');
       }
     } catch (e) {
       _showMessage('Erro ao excluir categoria: $e', 'error');
     }
   }
 
-  Future<void> _confirmDeleteCategory(String category) async {
+  Future<void> _confirmDeleteCategory(int id) async {
     return showDialog<void>(
       context: context,
       barrierDismissible: false,
       builder: (BuildContext context) {
         return AlertDialog(
           title: const Text('Confirmar Exclusão'),
-          content: Text(
-              'Você tem certeza de que deseja excluir a categoria "$category"?'),
+          content:
+              const Text('Você tem certeza de que deseja excluir a categoria?'),
           actions: <Widget>[
             TextButton(
               child: const Text('Cancelar'),
@@ -124,7 +134,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
               child: const Text('Excluir'),
               onPressed: () {
                 Navigator.of(context).pop();
-                _deleteCategory(category);
+                _deleteCategory(id);
               },
             ),
           ],
@@ -144,7 +154,6 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
             controller: _categoryController,
             decoration: const InputDecoration(
               hintText: 'Digite o nome da categoria',
-              border: OutlineInputBorder(),
             ),
           ),
           actions: <Widget>[
@@ -160,6 +169,9 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                 final newCategory = _categoryController.text.trim();
                 if (newCategory.isNotEmpty) {
                   _addCategory(newCategory);
+                } else {
+                  _showMessage(
+                      'O nome da categoria não pode ser vazio.', 'error');
                 }
               },
             ),
@@ -180,7 +192,12 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Gerenciar Categorias'),
+        title: Text(
+          'Gerenciar Categorias',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh),
@@ -198,7 +215,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
             ),
             const SizedBox(height: 16.0),
             _isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator.adaptive())
                 : Expanded(
                     child: ListView.builder(
                       itemCount: _categories.length,
@@ -209,11 +226,12 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
                           elevation: 4.0,
                           child: ListTile(
                             contentPadding: const EdgeInsets.all(16.0),
-                            title: Text(category,
+                            title: Text(category['name'],
                                 style: const TextStyle(fontSize: 16.0)),
                             trailing: IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _confirmDeleteCategory(category),
+                              onPressed: () =>
+                                  _confirmDeleteCategory(category['id']),
                             ),
                           ),
                         );

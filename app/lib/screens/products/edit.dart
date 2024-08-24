@@ -1,5 +1,6 @@
 // ignore_for_file: use_build_context_synchronously
 
+import 'package:dashboard/api/api.dart';
 import 'package:dashboard/screens/preview/preview.dart';
 import 'package:dashboard/screens/products/desktop/edit.dart';
 import 'package:flutter/material.dart';
@@ -44,14 +45,14 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Future<void> _loadCategories() async {
     setState(() => _isLoading = true);
     try {
-      final response = await http
-          .get(Uri.parse('http://45.174.192.150:3000/api/categories'));
+      final response = await http.get(Uri.parse('$apiUrl/api/categories'));
       if (response.statusCode == 200) {
         setState(() {
-          _categories = List<String>.from(json.decode(response.body));
+          _categories = (json.decode(response.body) as List)
+              .map((category) => category['name'].toString())
+              .toList();
           if (_categories.isNotEmpty && _selectedCategory == null) {
-            _selectedCategory =
-                _categories[0]; // Set default category if available
+            _selectedCategory = _categories[0];
           }
         });
       } else {
@@ -73,25 +74,36 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Future<void> _loadProductDetails() async {
     setState(() => _isLoading = true);
     try {
-      final response = await http.get(Uri.parse(
-          'http://45.174.192.150:3000/api/products/${widget.productId}'));
+      final response =
+          await http.get(Uri.parse('$apiUrl/api/products/${widget.productId}'));
+
+      print('Response status: ${response.statusCode}');
+      print('Response body: ${response.body}');
+
       if (response.statusCode == 200) {
         final product = json.decode(response.body);
+
+        print('Product data: $product');
+
         setState(() {
-          _titleController.text = product['title'];
-          _descriptionController.text = product['description'];
-          _priceController.text = product['price'].toString();
-          _discountController.text = product['discount'].toString();
-          _colorsController.text = (product['colors'] as List).join(', ');
-          _sizesController.text = (product['sizes'] as List).join(', ');
-          _shippingCostController.text = product['shippingCost'].toString();
-          _selectedCategory = product['category'];
-          _isOutOfStock = product['isOutOfStock'];
+          _titleController.text = product['title'] ?? '';
+          _descriptionController.text = product['description'] ?? '';
+          _priceController.text = product['price']?.toString() ?? '';
+          _discountController.text = product['discount']?.toString() ?? '';
+          _colorsController.text =
+              (product['colors'] as List<dynamic>?)?.join(', ') ?? '';
+          _sizesController.text =
+              (product['sizes'] as List<dynamic>?)?.join(', ') ?? '';
+          _shippingCostController.text =
+              product['shippingCost']?.toString() ?? '';
+          _selectedCategory = product['category'] ?? '';
+          _isOutOfStock = product['isOutOfStock'] ?? false;
 
           _imageUrls.clear();
-          _imageUrls.addAll((product['imageUrls'] as List<dynamic>)
-              .map((url) => TextEditingController(text: url as String))
-              .toList());
+          _imageUrls.addAll((product['imageUrls'] as List<dynamic>?)
+                  ?.map((url) => TextEditingController(text: url as String))
+                  .toList() ??
+              []);
         });
       } else {
         setState(() {
@@ -114,8 +126,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       setState(() => _isLoading = true);
       try {
         final response = await http.put(
-          Uri.parse(
-              'http://45.174.192.150:3000/api/products/${widget.productId}'),
+          Uri.parse('$apiUrl/api/products/${widget.productId}'),
           headers: {'Content-Type': 'application/json'},
           body: json.encode({
             'title': _titleController.text,
@@ -178,8 +189,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
       setState(() => _isLoading = true);
       try {
         final response = await http.delete(
-          Uri.parse(
-              'http://45.174.192.150:3000/api/products/${widget.productId}'),
+          Uri.parse('$apiUrl/api/products/${widget.productId}'),
         );
         if (response.statusCode == 200) {
           Navigator.pop(context, true); // Indica que o produto foi excluído
@@ -233,12 +243,17 @@ class _EditProductScreenState extends State<EditProductScreen> {
   Widget _buildSmallScreenLayout(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Produto'),
+        title: Text(
+          'Editar Produto',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: _isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator.adaptive())
             : Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -376,7 +391,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                   ),
                                 ],
                               );
-                            }).toList(),
+                            }),
                             const SizedBox(height: 16),
                             ElevatedButton(
                               onPressed: _addImageUrlField,

@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
           ),
           themeMode: _getThemeMode(themeModel.themeMode),
           debugShowCheckedModeBanner: false,
-          localizationsDelegates: [
+          localizationsDelegates: const [
             GlobalMaterialLocalizations.delegate,
             GlobalWidgetsLocalizations.delegate,
             GlobalCupertinoLocalizations.delegate,

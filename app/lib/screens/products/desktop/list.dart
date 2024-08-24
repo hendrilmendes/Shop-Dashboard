@@ -21,7 +21,12 @@ class ProductsPageDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Produtos Cadastrados'),
+        title: Text(
+          'Produtos Cadastrados',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
       ),
       body: Column(
         children: [
@@ -57,7 +62,7 @@ class ProductsPageDesktop extends StatelessWidget {
           ),
           Expanded(
             child: isLoading
-                ? const Center(child: CircularProgressIndicator())
+                ? const Center(child: CircularProgressIndicator.adaptive())
                 : filteredProducts.isEmpty
                     ? const Center(
                         child: Text(

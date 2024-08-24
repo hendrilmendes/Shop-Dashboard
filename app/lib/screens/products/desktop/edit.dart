@@ -54,12 +54,17 @@ class EditProductScreenDesktop extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Editar Produto'),
+        title: Text(
+          'Editar Produto',
+          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: isLoading
-            ? const Center(child: CircularProgressIndicator())
+            ? const Center(child: CircularProgressIndicator.adaptive())
             : Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -93,6 +98,7 @@ class EditProductScreenDesktop extends StatelessWidget {
                             controller: descriptionController,
                             decoration:
                                 const InputDecoration(labelText: 'Descrição'),
+                            maxLines: 5,
                             validator: (value) {
                               if (value == null || value.isEmpty) {
                                 return 'Por favor, insira uma descrição';
@@ -187,22 +193,22 @@ class EditProductScreenDesktop extends StatelessWidget {
                                   color: Colors.red,
                                   onPressed: () => onRemoveImageUrlField(index),
                                 ),
+                                const SizedBox(height: 20),
+                                ElevatedButton(
+                                  onPressed: onAddImageUrlField,
+                                  child: const Text('Adicionar URL de Imagem'),
+                                ),
                               ],
                             );
                           }),
-                          ElevatedButton(
-                            onPressed: onAddImageUrlField,
-                            child: const Text('Adicionar URL de Imagem'),
-                          ),
+                          const SizedBox(height: 16),
                           Row(
                             mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: onUpdateProduct,
                                 child: const Text('Atualizar Produto'),
                               ),
-                              SizedBox(height: 16),
                               ElevatedButton(
                                 onPressed: onDeleteProduct,
                                 style: ElevatedButton.styleFrom(
@@ -215,7 +221,7 @@ class EditProductScreenDesktop extends StatelessWidget {
                       ),
                     ),
                   ),
-                  SizedBox(height: 16),
+                  const SizedBox(height: 16),
                   Expanded(
                     flex: 1,
                     child: ProductPreview(
