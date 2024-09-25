@@ -1,28 +1,39 @@
+Changelog
+
 ======================================================
-#### 1.0.10
+## [1.0.8]
 
-Novo
-- Migrado backend para o Dart
+## Alterações
 
-Correções/Melhorias:
+### Correções
+
 - Correções de Bugs
 - Ajustes visuais
 
-======================================================
-#### 1.0.8
+### Features
 
-Novo
+- Migrado backend para o Dart
+
+======================================================
+## [1.0.8]
+
+## Alterações
+
+### Correções
+
+- Ajustes visuais
+
+### Features
+
 - Migrado frontend para o Flutter
 - Suporte a backup e restauração do banco de dados
 - Gerencie as categorias
 - Filtre os pedidos por data
 - Pré visualização ao Adicionar ou Editar Produtos
 
-Correções/Melhorias:
-- Ajustes visuais
-
 ======================================================
-#### 1.0.5-alpha
+## [1.0.5-alpha]
 
-Novo:
+## Alterações
+
 - Versão inicial

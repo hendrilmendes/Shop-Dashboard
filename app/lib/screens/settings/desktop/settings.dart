@@ -1,13 +1,9 @@
-import 'dart:io';
-import 'dart:html' as html;
 import 'package:dashboard/api/api.dart';
+import 'package:dashboard/manager/manager.dart';
 import 'package:dashboard/updater/updater.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
-import 'package:file_picker/file_picker.dart';
-import 'package:http/http.dart' as http;
 import 'package:dashboard/theme/theme.dart';
 import 'package:dashboard/widgets/settings/settings.dart';
 
@@ -22,6 +18,7 @@ class SettingsScreenDesktop extends StatefulWidget {
 class _SettingsScreenDesktopState extends State<SettingsScreenDesktop> {
   String appVersion = '';
   String appBuild = '';
+  late BackupRestoreManager _backupRestoreManager;
 
   @override
   void initState() {
@@ -32,104 +29,10 @@ class _SettingsScreenDesktopState extends State<SettingsScreenDesktop> {
         appBuild = packageInfo.buildNumber;
       });
     });
-  }
 
-  Future<void> _backup() async {
-    try {
-      final response = await http.get(Uri.parse('$apiUrl/api/backup'));
-      if (response.statusCode == 200) {
-        final bytes = response.bodyBytes;
-
-        if (kIsWeb) {
-          _backupForWeb(bytes);
-        } else {
-          _backupForOtherPlatforms(bytes);
-        }
-      } else {
-        _showSnackBar('Erro ao realizar backup. Código: ${response.statusCode}',
-            Colors.red);
-      }
-    } catch (error) {
-      _showSnackBar('Erro ao realizar backup: $error', Colors.red);
-      print('Erro ao realizar backup: $error');
-    }
-  }
-
-  void _backupForWeb(Uint8List bytes) {
-    final blob = html.Blob([bytes]);
-    final url = html.Url.createObjectUrlFromBlob(blob);
-
-    html.AnchorElement(href: url)
-      ..setAttribute('download', 'database-backup.sqlite')
-      ..click();
-
-    html.Url.revokeObjectUrl(url);
-
-    _showSnackBar('Backup realizado com sucesso!', Colors.green);
-  }
-
-  Future<void> _backupForOtherPlatforms(Uint8List bytes) async {
-    final result = await FilePicker.platform.saveFile(
-      dialogTitle: 'Salvar backup',
-      fileName: 'database-backup.sqlite',
-    );
-
-    if (result != null) {
-      final file = File(result);
-      await file.writeAsBytes(bytes);
-      _showSnackBar('Backup realizado com sucesso!', Colors.green);
-    } else {
-      _showSnackBar('Backup não salvo', Colors.orange);
-    }
-  }
-
-  Future<void> _restore() async {
-    final result = await FilePicker.platform.pickFiles(
-      type: FileType.custom,
-      allowedExtensions: ['sqlite'],
-    );
-
-    if (result != null && result.files.isNotEmpty) {
-      final bytes = result.files.single.bytes;
-
-      if (bytes != null) {
-        try {
-          final request =
-              http.MultipartRequest('POST', Uri.parse('$apiUrl/api/restore'))
-                ..files.add(http.MultipartFile.fromBytes(
-                  'backupFile',
-                  bytes,
-                  filename: 'database-backup.sqlite',
-                ));
-
-          final response = await request.send();
-          final responseBody = await response.stream.bytesToString();
-
-          if (response.statusCode == 200) {
-            _showSnackBar('Backup restaurado com sucesso!', Colors.green);
-          } else {
-            _showSnackBar(
-                'Erro ao restaurar backup: ${response.statusCode}', Colors.red);
-            print('Resposta do servidor: $responseBody');
-          }
-        } catch (error) {
-          _showSnackBar('Erro ao restaurar backup: $error', Colors.red);
-        }
-      } else {
-        _showSnackBar('Erro ao ler o arquivo.', Colors.red);
-      }
-    } else {
-      _showSnackBar(
-          'Nenhum arquivo selecionado para restauração.', Colors.orange);
-    }
-  }
-
-  void _showSnackBar(String message, Color color) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(message),
-        backgroundColor: color,
-      ),
+    _backupRestoreManager = BackupRestoreManager(
+      context: context,
+      apiUrl: apiUrl,
     );
   }
 
@@ -171,12 +74,12 @@ class _SettingsScreenDesktopState extends State<SettingsScreenDesktop> {
                           _buildElevatedButton(
                             text: 'Fazer Backup',
                             icon: Icons.backup_outlined,
-                            onPressed: _backup,
+                            onPressed: _backupRestoreManager.backup,
                           ),
                           _buildElevatedButton(
                             text: 'Restaurar Backup',
                             icon: Icons.restore_outlined,
-                            onPressed: _restore,
+                            onPressed: _backupRestoreManager.restore,
                           ),
                         ],
                       ),

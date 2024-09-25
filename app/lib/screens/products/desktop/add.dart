@@ -49,13 +49,19 @@ class _AddProductScreenDesktopState extends State<AddProductScreenDesktop> {
 
   Future<void> _loadCategories() async {
     try {
-      print('Iniciando o carregamento das categorias...');
+      if (kDebugMode) {
+        print('Iniciando o carregamento das categorias...');
+      }
       final response = await http.get(Uri.parse('$apiUrl/api/categories'));
 
-      print('Resposta recebida com status: ${response.statusCode}');
+      if (kDebugMode) {
+        print('Resposta recebida com status: ${response.statusCode}');
+      }
       if (response.statusCode == 200) {
         final List<dynamic> categoriesJson = json.decode(response.body);
-        print('Categorias recebidas: $categoriesJson');
+        if (kDebugMode) {
+          print('Categorias recebidas: $categoriesJson');
+        }
 
         setState(() {
           _categories = categoriesJson.map((category) {
@@ -63,14 +69,20 @@ class _AddProductScreenDesktopState extends State<AddProductScreenDesktop> {
           }).toList();
         });
 
-        print('Categorias carregadas com sucesso: $_categories');
+        if (kDebugMode) {
+          print('Categorias carregadas com sucesso: $_categories');
+        }
       } else {
-        print(
+        if (kDebugMode) {
+          print(
             'Erro ao carregar categorias. Código de status: ${response.statusCode}');
+        }
         _showMessage('Erro ao carregar categorias', 'error');
       }
     } catch (e) {
-      print('Exceção ao carregar categorias: $e');
+      if (kDebugMode) {
+        print('Exceção ao carregar categorias: $e');
+      }
       _showMessage('Erro ao carregar categorias: $e', 'error');
     }
   }
@@ -90,6 +102,7 @@ class _AddProductScreenDesktopState extends State<AddProductScreenDesktop> {
         setState(() {
           _categories.add(category);
         });
+        // ignore: use_build_context_synchronously
         Navigator.of(context).pop();
         _loadCategories(); // Atualiza a lista de categorias
       } else {

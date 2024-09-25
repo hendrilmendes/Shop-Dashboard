@@ -3,6 +3,7 @@
 import 'package:dashboard/api/api.dart';
 import 'package:dashboard/screens/preview/preview.dart';
 import 'package:dashboard/screens/products/desktop/edit.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
@@ -77,13 +78,19 @@ class _EditProductScreenState extends State<EditProductScreen> {
       final response =
           await http.get(Uri.parse('$apiUrl/api/products/${widget.productId}'));
 
-      print('Response status: ${response.statusCode}');
-      print('Response body: ${response.body}');
+      if (kDebugMode) {
+        print('Response status: ${response.statusCode}');
+      }
+      if (kDebugMode) {
+        print('Response body: ${response.body}');
+      }
 
       if (response.statusCode == 200) {
         final product = json.decode(response.body);
 
-        print('Product data: $product');
+        if (kDebugMode) {
+          print('Product data: $product');
+        }
 
         setState(() {
           _titleController.text = product['title'] ?? '';

@@ -455,7 +455,7 @@ void main() async {
   final handler = const Pipeline()
       .addMiddleware(corsHeaders(headers: overrideHeaders))
       .addMiddleware(logRequests())
-      .addHandler(router);
+      .addHandler(router.call);
 
   final server = await io.serve(handler, '0.0.0.0', 3000);
   print('Server running on http://${server.address.host}:${server.port}');

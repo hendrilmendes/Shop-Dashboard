@@ -27,77 +27,105 @@ class Updater {
         final String currentVersion = packageInfo.version;
 
         if (latestVersion.compareTo(currentVersion) > 0) {
-          // ignore: use_build_context_synchronously
-          showDialog(
+          showModalBottomSheet(
             // ignore: use_build_context_synchronously
             context: context,
-            builder: (context) => AlertDialog(
-              title: const Text("Nova versão disponível"),
-              content: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Text(
-                    "Novidades",
-                    style: TextStyle(fontWeight: FontWeight.bold),
-                  ),
-                  const SizedBox(height: 5),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Text(
-                        releaseNotes,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            isScrollControlled: true,
+            builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      "Nova versão disponivel",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Novidades",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
-                  ),
-                ],
-              ),
-              actions: <Widget>[
-                TextButton(
-                  onPressed: () => Navigator.pop(context),
-                  child: const Text("Cancelar"),
+                    const SizedBox(height: 8),
+                    ConstrainedBox(
+                      constraints: BoxConstraints(
+                        maxHeight: MediaQuery.of(context).size.height * 0.6,
+                      ),
+                      child: SingleChildScrollView(
+                        child: Text(releaseNotes),
+                      ),
+                    ),
+                    const SizedBox(height: 16),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        TextButton(
+                          onPressed: () => Navigator.pop(context),
+                          child: const Text("Depois"),
+                        ),
+                        const SizedBox(width: 8),
+                        FilledButton(
+                          onPressed: () {
+                            final Uri uri = Platform.isAndroid
+                                ? Uri.parse(
+                                    'https://play.google.com/store/apps/details?id=com.github.hendrilmendes.shop.dashboard')
+                                : Uri.parse(
+                                    'https://github.com/hendrilmendes/Calculadora/releases/latest');
+
+                            launchUrl(uri);
+                            Navigator.pop(context); // Fecha o modal
+                          },
+                          child: const Text("Baixar"),
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
-                FilledButton(
-                  onPressed: () {
-                    if (Platform.isAndroid) {
-                      // Android
-                      launchUrl(
-                        Uri.parse(
-                            'https://play.google.com/store/apps/details?id=com.github.hendrilmendes.shop.dashboard'),
-                      );
-                      Navigator.pop(context); // Fecha o diálogo interno
-                    } else {
-                      // iOS
-                      launchUrl(
-                        Uri.parse(
-                            'https://github.com/hendrilmendes/Shop-Backend/releases/latest'),
-                      );
-                      Navigator.pop(context); // Fecha o diálogo interno
-                    }
-                  },
-                  child: const Text("Baixar"),
-                ),
-              ],
-            ),
+              );
+            },
           );
         } else {
-            showDialog(
-              // ignore: use_build_context_synchronously
-              context: context,
-              builder: (context) => AlertDialog(
-                title: const Text("Nenhuma nova versão disponível"),
-                content: const Text(
-                  "Você já esta na versão mais recente",
-                  style: TextStyle(fontSize: 16.0),
+          showModalBottomSheet(
+            // ignore: use_build_context_synchronously
+            context: context,
+            shape: const RoundedRectangleBorder(
+              borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+            ),
+            builder: (context) {
+              return Padding(
+                padding: const EdgeInsets.all(16),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      "Sem atualizações disponíveis",
+                      style: Theme.of(context).textTheme.titleLarge,
+                    ),
+                    const SizedBox(height: 16),
+                    const Text(
+                      "Você já está na versão mais recente",
+                      style: TextStyle(fontSize: 16.0),
+                    ),
+                    const SizedBox(height: 16),
+                    Align(
+                      alignment: Alignment.centerRight,
+                      child: FilledButton(
+                        onPressed: () => Navigator.pop(context),
+                        child: const Text("Ok"),
+                      ),
+                    ),
+                  ],
                 ),
-                actions: <Widget>[
-                  FilledButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text("Ok"),
-                  ),
-                ],
-              ),
-            );
-          
+              );
+            },
+          );
         }
       } else {
         if (kDebugMode) {

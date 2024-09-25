@@ -7,6 +7,7 @@ class ManageCategoriesScreen extends StatefulWidget {
   const ManageCategoriesScreen({super.key});
 
   @override
+  // ignore: library_private_types_in_public_api
   _ManageCategoriesScreenState createState() => _ManageCategoriesScreenState();
 }
 
@@ -74,6 +75,7 @@ class _ManageCategoriesScreenState extends State<ManageCategoriesScreen> {
         setState(() {
           _categories.add({'id': responseData['id'], 'name': category});
         });
+        // ignore: use_build_context_synchronously
         Navigator.of(context).pop();
         _loadCategories(); // Atualiza a lista de categorias
       } else {
