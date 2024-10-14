@@ -22,6 +22,7 @@ sudo apt-get install libsqlite3-dev
 
 Windows:
 winget install sqlite.sqlite
+https://www.sqlite.org/download.html
 
 macOS: 
 /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
