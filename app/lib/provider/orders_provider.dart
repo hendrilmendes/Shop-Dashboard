@@ -11,36 +11,51 @@ class OrderProvider with ChangeNotifier {
 
   Future<void> fetchOrders() async {
     try {
-      final response =
-          await http.get(Uri.parse('$apiUrl/api/orders'));
-      final List<dynamic> extractedData = json.decode(response.body);
+      final response = await http.get(Uri.parse('$apiUrl/api/orders'));
 
-      if (extractedData.isEmpty) {
-        return;
+      if (response.statusCode == 200) {
+        final extractedData = json.decode(response.body);
+        if (kDebugMode) {
+          print('Resposta da API: $extractedData');
+        }
+
+        if (extractedData.isEmpty) {
+          if (kDebugMode) {
+            print('Nenhum pedido encontrado.');
+          }
+          return;
+        }
+
+        final List<Order> loadedOrders = extractedData.map<Order>((orderData) {
+          return Order(
+            id: orderData['id'].toString(),
+            customerName: orderData['customerName']?.toString() ?? '',
+            address: orderData['address']?.toString() ?? '',
+            paymentMethod: orderData['paymentMethod']?.toString() ?? '',
+            amount: (orderData['amount'] as num).toDouble(),
+            date: DateTime.parse(orderData['date']),
+            items: (json.decode(orderData['items']) as List<dynamic>)
+                .map<OrderItem>((item) {
+              return OrderItem(
+                title: item['title']?.toString() ?? '',
+                quantity: item['quantity'] as int,
+                price: (item['price'] as num).toDouble(),
+                color: item['color']?.toString() ?? '',
+                size: item['size']?.toString() ?? '',
+              );
+            }).toList(),
+            isNew: orderData['isNew'] ?? false,
+          );
+        }).toList();
+
+        _orders = loadedOrders.reversed.toList();
+        notifyListeners();
+      } else {
+        if (kDebugMode) {
+          print(
+              'Erro ao carregar pedidos: ${response.statusCode} - ${response.body}');
+        }
       }
-
-      final List<Order> loadedOrders = extractedData.map((orderData) {
-        return Order(
-          id: orderData['id'],
-          customerName: orderData['customerName'],
-          address: orderData['address'],
-          paymentMethod: orderData['paymentMethod'],
-          amount: orderData['amount'].toDouble(),
-          date: DateTime.parse(orderData['date']),
-          items: (orderData['items'] as List<dynamic>).map((item) {
-            return OrderItem(
-              title: item['title'],
-              quantity: item['quantity'],
-              price: item['price'].toDouble(),
-              color: item['color'],
-              size: item['size'],
-            );
-          }).toList(),
-        );
-      }).toList();
-
-      _orders = loadedOrders.reversed.toList();
-      notifyListeners();
     } catch (error) {
       if (kDebugMode) {
         print('Erro ao carregar pedidos: $error');

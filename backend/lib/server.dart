@@ -349,7 +349,7 @@ void main() async {
 
     // Insere o pedido e obtém o ID da última linha inserida
     db.execute('''
-    INSERT INTO "Order" (customerName, address, paymentMethod, amount, date)
+    INSERT INTO "CustomerOrder" (customerName, address, paymentMethod, amount, date)
     VALUES (?, ?, ?, ?, ?)
   ''', [
       data['customerName'],

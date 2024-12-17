@@ -1,6 +1,27 @@
 Changelog
 
 ======================================================
+## [1.1.4]
+
+## Alterações
+
+*Frontend*
+
+### Correções
+
+- Corrigido bug de não buscar os pedidos
+
+### Features
+
+- 
+
+*Backend*
+
+### Correções
+
+- Corrigido erro na tabela dos Pedidos
+
+======================================================
 ## [1.1.2]
 
 ## Alterações
