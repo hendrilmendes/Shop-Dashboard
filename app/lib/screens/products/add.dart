@@ -91,7 +91,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
       } else {
         if (kDebugMode) {
           print(
-            'Erro ao carregar categorias. Código de status: ${response.statusCode}');
+              'Erro ao carregar categorias. Código de status: ${response.statusCode}');
         }
         _showMessage('Erro ao carregar categorias', 'error');
       }
@@ -241,7 +241,7 @@ class _AddProductScreenState extends State<AddProductScreen> {
   Widget _buildSmallScreenLayout(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title:  Text(
+        title: Text(
           'Cadastrar Produtos',
           style: Theme.of(context).textTheme.headlineMedium!.copyWith(
                 fontWeight: FontWeight.bold,

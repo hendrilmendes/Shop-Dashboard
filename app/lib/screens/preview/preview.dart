@@ -48,7 +48,7 @@ class ProductPreview extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8.0),
                 child: Image.network(
                   imageUrls[0],
-                  height: 200,
+                  height: 150,
                   width: double.infinity,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
@@ -61,7 +61,7 @@ class ProductPreview extends StatelessWidget {
               )
             else
               Container(
-                height: 200,
+                height: 150,
                 width: double.infinity,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(8.0),
@@ -78,7 +78,7 @@ class ProductPreview extends StatelessWidget {
             Text(
               title.isEmpty ? 'Título do Produto' : title,
               style: const TextStyle(
-                fontSize: 22,
+                fontSize: 20,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -113,7 +113,7 @@ class ProductPreview extends StatelessWidget {
                   ? 'Descrição do produto'
                   : description,
               style: const TextStyle(fontSize: 16, color: Colors.grey),
-              maxLines: 5,
+              maxLines: 4,
               overflow: TextOverflow.ellipsis,
             ),
             const SizedBox(height: 16),
@@ -149,13 +149,12 @@ class ProductPreview extends StatelessWidget {
   Widget _buildChip(String label) {
     return Chip(
       label: Text(label),
-      backgroundColor: Colors.blueAccent.withOpacity(0.2),
+      backgroundColor: Colors.white,
       labelStyle: const TextStyle(color: Colors.blueAccent),
     );
   }
 
   bool _isValidUrl(String url) {
-    // Verifique se a URL é válida, você pode usar uma expressão regular ou outra lógica
     return Uri.tryParse(url)?.hasAbsolutePath ?? false;
   }
 }

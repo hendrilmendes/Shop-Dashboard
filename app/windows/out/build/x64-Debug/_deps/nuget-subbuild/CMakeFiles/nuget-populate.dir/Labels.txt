@@ -1,0 +1,15 @@
+# Target labels
+ nuget-populate
+# Source files and their labels
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/CMakeFiles/nuget-populate
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/CMakeFiles/nuget-populate.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/CMakeFiles/nuget-populate-complete.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-build.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-configure.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-copyfile.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-download.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-install.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-mkdir.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-patch.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-test.rule
+C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-update.rule

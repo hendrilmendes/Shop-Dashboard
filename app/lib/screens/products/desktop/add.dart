@@ -75,7 +75,7 @@ class _AddProductScreenDesktopState extends State<AddProductScreenDesktop> {
       } else {
         if (kDebugMode) {
           print(
-            'Erro ao carregar categorias. Código de status: ${response.statusCode}');
+              'Erro ao carregar categorias. Código de status: ${response.statusCode}');
         }
         _showMessage('Erro ao carregar categorias', 'error');
       }

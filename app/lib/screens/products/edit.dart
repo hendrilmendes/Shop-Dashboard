@@ -183,7 +183,7 @@ class _EditProductScreenState extends State<EditProductScreen> {
               onPressed: () => Navigator.pop(context, false),
               child: const Text('Cancelar'),
             ),
-            TextButton(
+            ElevatedButton(
               onPressed: () => Navigator.pop(context, true),
               child: const Text('Excluir'),
             ),

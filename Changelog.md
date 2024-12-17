@@ -1,7 +1,24 @@
 Changelog
 
 ======================================================
-## [1.0.8]
+## [1.1.2]
+
+## Alterações
+
+*Frontend*
+
+### Correções
+
+- Correções de bugs
+- Correções na interface
+- Ajustes em várias parte do dashboard
+
+### Features
+
+- Suporte para alteração do ip do servidor
+
+======================================================
+## [1.0.10]
 
 ## Alterações
 

@@ -39,7 +39,7 @@ class _ProductsPageState extends State<ProductsPage>
   }
 
   void fetchProducts() async {
-    const url = '$apiUrl/api/products';
+    final url = '$apiUrl/api/products';
     try {
       if (kDebugMode) {
         print('Fetching products from: $url');
@@ -123,22 +123,31 @@ class _ProductsPageState extends State<ProductsPage>
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: TextField(
-              controller: _searchController,
-              decoration: InputDecoration(
-                labelText: 'Pesquisar produtos...',
-                prefixIcon: const Icon(Icons.search),
-                suffixIcon: _searchController.text.isNotEmpty
-                    ? IconButton(
-                        icon: const Icon(Icons.clear),
-                        onPressed: () {
-                          _searchController.clear();
-                        },
-                      )
-                    : null,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(50.0),
+            padding: const EdgeInsets.all(16.0),
+            child: Center(
+              child: SizedBox(
+                width: 600,
+                child: TextField(
+                  controller: _searchController,
+                  decoration: InputDecoration(
+                    hintText: 'Pesquisar produtos...',
+                    prefixIcon: const Icon(Icons.search),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            icon: const Icon(Icons.clear),
+                            onPressed: () {
+                              _searchController.clear();
+                            },
+                          )
+                        : null,
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12.0),
+                      borderSide: BorderSide.none,
+                    ),
+                    contentPadding: const EdgeInsets.symmetric(vertical: 16.0),
+                  ),
                 ),
               ),
             ),

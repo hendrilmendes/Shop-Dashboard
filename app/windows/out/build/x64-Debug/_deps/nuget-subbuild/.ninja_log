@@ -1,0 +1,24 @@
+# ninja log v6
+4	62	7558924236540626	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-mkdir	80cf14cd360928ef
+4	62	7558924236540626	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-mkdir	80cf14cd360928ef
+62	837	7558924244311813	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-download	de606369b527d255
+62	837	7558924244311813	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-download	de606369b527d255
+839	891	7558924244847395	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-update	1df5a4c050ba3324
+839	891	7558924244847395	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-update	1df5a4c050ba3324
+892	947	7558924245407396	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-patch	729781bb54c2bfa6
+892	947	7558924245407396	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-patch	729781bb54c2bfa6
+948	1015	7558924246082613	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-copyfile	5cd8ed49c40dc22e
+948	1015	7558924246082613	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-src/nuget.exe	5cd8ed49c40dc22e
+948	1015	7558924246082613	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-copyfile	5cd8ed49c40dc22e
+1015	1068	7558924246612633	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-configure	53a2f24be29e0bdc
+1015	1068	7558924246612633	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-configure	53a2f24be29e0bdc
+1068	1122	7558924247157726	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-build	11bfe011151bd688
+1068	1122	7558924247157726	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-build	11bfe011151bd688
+1123	1177	7558924247703049	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-install	5702b747235fe119
+1123	1177	7558924247703049	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-install	5702b747235fe119
+1177	1230	7558924248243098	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-test	9435cbe2cfaeb382
+1177	1230	7558924248243098	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-test	9435cbe2cfaeb382
+1231	1305	7558924248987248	CMakeFiles/nuget-populate-complete	998126250af3b9ee
+1231	1305	7558924248987248	nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-done	998126250af3b9ee
+1231	1305	7558924248987248	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/CMakeFiles/nuget-populate-complete	998126250af3b9ee
+1231	1305	7558924248987248	C:/Users/Hendril/Documents/GitHub/Shop-Backend/app/windows/out/build/x64-Debug/_deps/nuget-subbuild/nuget-populate-prefix/src/nuget-populate-stamp/nuget-populate-done	998126250af3b9ee

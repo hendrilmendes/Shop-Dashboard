@@ -11,7 +11,7 @@ class Updater {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://api.github.com/repos/hendrilmendes/Shop-Backend/releases/latest'),
+            'https://api.github.com/repos/hendrilmendes/Shop-Dashboard/releases/latest'),
         headers: {
           'Accept': 'application/vnd.github.v3+json',
         },

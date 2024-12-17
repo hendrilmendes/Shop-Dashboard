@@ -1,11 +1,19 @@
+import 'package:flutter/material.dart';
+import 'package:dashboard/screens/home/home.dart';
 import 'package:dashboard/screens/category/category.dart';
-import 'package:dashboard/screens/dashboard/desktop/desktop.dart';
 import 'package:dashboard/screens/orders/orders.dart';
 import 'package:dashboard/screens/products/add.dart';
 import 'package:dashboard/screens/products/list.dart';
 import 'package:dashboard/screens/settings/settings.dart';
-import 'package:dashboard/widgets/home/card.dart';
-import 'package:flutter/material.dart';
+
+final List<Widget> dashboardPages = [
+  const HomeScreen(),
+  const AddProductScreen(),
+  const ProductsPage(),
+  const OrdersScreen(),
+  const ManageCategoriesScreen(),
+  const SettingsScreen(),
+];
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -18,82 +26,108 @@ class DashboardScreen extends StatefulWidget {
 class _DashboardScreenState extends State<DashboardScreen> {
   int _selectedIndex = 0;
 
+  void _onItemSelected(int index) {
+    setState(() {
+      _selectedIndex = index;
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
-        if (constraints.maxWidth < 600) {
-          return _buildSmallScreenLayout(context);
-        } else {
-          return _buildLargeScreenLayout(context);
-        }
+        bool isLargeScreen = constraints.maxWidth >= 1024;
+
+        return Scaffold(
+          appBar: isLargeScreen ? null : AppBar(),
+          body: Row(
+            children: [
+              if (isLargeScreen)
+                SizedBox(
+                  width: 250,
+                  child: DashboardDrawer(
+                    onItemSelected: _onItemSelected,
+                  ),
+                )
+              else
+                const SizedBox.shrink(),
+              Expanded(
+                child: dashboardPages[_selectedIndex],
+              ),
+            ],
+          ),
+          drawer: isLargeScreen
+              ? null
+              : DashboardDrawer(
+                  onItemSelected: (index) {
+                    _onItemSelected(index);
+                    Navigator.of(context).pop();
+                  },
+                ),
+        );
       },
     );
   }
+}
 
-  Widget _buildSmallScreenLayout(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Dashboard'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: GridView.count(
-          crossAxisCount: 2,
-          crossAxisSpacing: 12.0,
-          mainAxisSpacing: 12.0,
+class DashboardDrawer extends StatelessWidget {
+  final Function(int) onItemSelected;
+
+  const DashboardDrawer({super.key, required this.onItemSelected});
+
+  @override
+  Widget build(BuildContext context) {
+    return Drawer(
+      child: Container(
+        color: Colors.blueGrey.shade900,
+        child: ListView(
+          padding: EdgeInsets.zero,
           children: [
-            DashboardCard(
-              title: 'Cadastro de Produtos',
-              description: 'Cadastre novos produtos',
-              icon: Icons.add_shopping_cart,
-              color: Colors.green,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const AddProductScreen()),
+            DrawerHeader(
+              decoration: BoxDecoration(color: Colors.blueGrey.shade800),
+              child: const Text(
+                'Shop Dashboard',
+                style: TextStyle(
+                  color: Colors.white,
+                  fontSize: 24,
+                ),
               ),
             ),
-            DashboardCard(
-              title: 'Produtos Cadastrados',
-              description: 'Gerencie seus produtos.',
-              icon: Icons.list_alt,
-              color: Colors.orange,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const ProductsPage()),
-              ),
+            _buildDrawerItem(
+              context,
+              'Dashboard',
+              Icons.dashboard,
+              0,
             ),
-            DashboardCard(
-              title: 'Pedidos',
-              description: 'Verifique os pedidos realizados',
-              icon: Icons.shopping_basket,
-              color: Colors.blue,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const OrdersScreen()),
-              ),
+            _buildDrawerItem(
+              context,
+              'Cadastro de Produtos',
+              Icons.add_shopping_cart,
+              1,
             ),
-            DashboardCard(
-              title: 'Categorias',
-              description: 'Gerencie as categorias de produtos',
-              icon: Icons.category,
-              color: Colors.amber,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                    builder: (context) => const ManageCategoriesScreen()),
-              ),
+            _buildDrawerItem(
+              context,
+              'Produtos Cadastrados',
+              Icons.list_alt,
+              2,
             ),
-            DashboardCard(
-              title: 'Configurações',
-              description: 'Ajuste as preferências do sistema',
-              icon: Icons.settings,
-              color: Colors.purple,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SettingsScreen()),
-              ),
+            _buildDrawerItem(
+              context,
+              'Pedidos',
+              Icons.shopping_basket,
+              3,
+            ),
+            _buildDrawerItem(
+              context,
+              'Categorias',
+              Icons.category,
+              4,
+            ),
+            _buildDrawerItem(
+              context,
+              'Configurações',
+              Icons.settings,
+              5,
             ),
           ],
         ),
@@ -101,25 +135,15 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildLargeScreenLayout(BuildContext context) {
-    return Scaffold(
-      body: Row(
-        children: [
-          DashboardSidebar(
-            onItemSelected: (index) {
-              setState(() {
-                _selectedIndex = index;
-              });
-            },
-          ),
-          Expanded(
-            child: IndexedStack(
-              index: _selectedIndex,
-              children: dashboardPages,
-            ),
-          ),
-        ],
+  Widget _buildDrawerItem(
+      BuildContext context, String title, IconData icon, int index) {
+    return ListTile(
+      leading: Icon(icon, color: Colors.white),
+      title: Text(
+        title,
+        style: const TextStyle(color: Colors.white),
       ),
+      onTap: () => onItemSelected(index),
     );
   }
 }

@@ -1,12 +1,35 @@
+import 'dart:io';
+
+import 'package:dashboard/api/api.dart';
 import 'package:dashboard/provider/orders_provider.dart';
 import 'package:dashboard/screens/dashboard/dashboard.dart';
+import 'package:dashboard/screens/machine/machine.dart';
 import 'package:dashboard/theme/theme.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:window_manager/window_manager.dart';
 
 main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  await loadApiUrl();
+
+  if (Platform.isWindows || Platform.isMacOS || Platform.isLinux) {
+    await windowManager.ensureInitialized();
+
+    WindowOptions windowOptions = WindowOptions(
+      skipTaskbar: false,
+      titleBarStyle: TitleBarStyle.normal,
+      title: "Shop Dashboard",
+    );
+
+    windowManager.waitUntilReadyToShow(windowOptions, () async {
+      await windowManager.show();
+      await windowManager.focus();
+    });
+  }
 
   runApp(
     const MyApp(),
@@ -43,12 +66,16 @@ class MyApp extends StatelessWidget {
           theme: ThemeData(
             brightness: Brightness.light,
             useMaterial3: true,
-            textTheme: Typography().black.apply(fontFamily: 'OpenSans'),
+            textTheme: Typography()
+                .black
+                .apply(fontFamily: GoogleFonts.openSans().fontFamily),
           ),
           darkTheme: ThemeData(
             brightness: Brightness.dark,
             useMaterial3: true,
-            textTheme: Typography().white.apply(fontFamily: 'OpenSans'),
+            textTheme: Typography()
+                .white
+                .apply(fontFamily: GoogleFonts.openSans().fontFamily),
           ),
           themeMode: _getThemeMode(themeModel.themeMode),
           debugShowCheckedModeBanner: false,
@@ -60,7 +87,8 @@ class MyApp extends StatelessWidget {
           supportedLocales: const [
             Locale('pt'),
           ],
-          home: const DashboardScreen(),
+          home:
+              apiUrl == null ? const MachineScreen() : const DashboardScreen(),
         );
       }),
     );

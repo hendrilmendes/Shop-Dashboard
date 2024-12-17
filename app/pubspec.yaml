@@ -2,35 +2,35 @@ name: dashboard
 description: "A new Flutter project."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 
-version: 1.0.10+12
+version: 1.1.2+112
 
 environment:
-  sdk: ^3.5.0
+  sdk: ^3.6.0
 
 dependencies:
   flutter:
     sdk: flutter
 
-# Cached Network
-  cached_network_image: ^3.4.1
-
 # Connectivity Plus
-  connectivity_plus: ^6.0.3
+  connectivity_plus: ^6.1.0
 
 # File Piker
-  file_picker: ^8.1.2
+  file_picker: ^8.1.6
 
 # Intl
   intl: ^0.19.0
 
 # Geo
   geolocator: ^13.0.1
-  
+
+# Google  
+  google_fonts: ^6.2.1
+
 # HTTP  
   http: ^1.2.2
 
 # Package Info
-  package_info_plus: ^8.0.3
+  package_info_plus: ^8.1.0
 
 # Provider
   provider: ^6.1.2
@@ -44,6 +44,9 @@ dependencies:
 # Url Launcher
   url_launcher: ^6.3.1
   
+# Window Manager
+  window_manager: ^0.4.3
+
   flutter_localizations:
     sdk: flutter
 
@@ -53,13 +56,19 @@ dev_dependencies:
 
   flutter_lints: ^5.0.0
 
+  msix: ^3.16.8
+
 flutter:
   uses-material-design: true
 
-  # assets:
-  #   - assets/img/
+  assets:
+    - assets/img/
 
-  fonts:
-    - family: OpenSans
-      fonts:
-        - asset: assets/fonts/OpenSans.ttf
+msix_config:
+  display_name: Shop Dashboard
+  publisher_display_name: Hendril Mendes
+  identity_name: com.github.hendrilmendes.shop.dashboard
+  logo_path: assets/img/ic_launcher.png
+  icons_background_color: transparent
+  capabilities: internetClient, location, privateNetworkClientServer
+  signtool_options: /fd SHA256 /f "C:\Users\Hendril\Documents\GitHub\Key App.pfx" /p Hendril@123

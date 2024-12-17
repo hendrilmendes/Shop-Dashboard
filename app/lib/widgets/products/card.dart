@@ -2,7 +2,6 @@ import 'package:dashboard/widgets/products/desktop/card.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:dashboard/models/products.dart';
 
@@ -54,17 +53,26 @@ class ProductCard extends StatelessWidget {
                   topRight: Radius.circular(15),
                 ),
                 child: product.imageUrls.isNotEmpty
-                    ? CachedNetworkImage(
-                        imageUrl: product.imageUrls.first,
-                        placeholder: (context, url) => Shimmer.fromColors(
-                          baseColor: Colors.grey[300]!,
-                          highlightColor: Colors.grey[100]!,
-                          child: Container(
-                            color: Colors.white,
-                          ),
-                        ),
-                        errorWidget: (context, url, error) =>
-                            const Icon(Icons.error),
+                    ? Image.network(
+                        product.imageUrls.first,
+                        loadingBuilder: (BuildContext context, Widget child,
+                            ImageChunkEvent? loadingProgress) {
+                          if (loadingProgress == null) {
+                            return child;
+                          } else {
+                            return Shimmer.fromColors(
+                              baseColor: Colors.grey[300]!,
+                              highlightColor: Colors.grey[100]!,
+                              child: Container(
+                                color: Colors.white,
+                              ),
+                            );
+                          }
+                        },
+                        errorBuilder: (BuildContext context, Object error,
+                            StackTrace? stackTrace) {
+                          return const Icon(Icons.error);
+                        },
                         fit: BoxFit.cover,
                       )
                     : const Placeholder(),

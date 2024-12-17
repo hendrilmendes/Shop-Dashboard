@@ -20,7 +20,8 @@ class BackupRestoreManager {
         final bytes = response.bodyBytes;
         await _backupForOtherPlatforms(bytes);
       } else {
-        _showSnackBar('Erro ao realizar backup. Código: ${response.statusCode}', Colors.red);
+        _showSnackBar('Erro ao realizar backup. Código: ${response.statusCode}',
+            Colors.red);
       }
     } catch (error) {
       _showSnackBar('Erro ao realizar backup: $error', Colors.red);
@@ -46,42 +47,87 @@ class BackupRestoreManager {
   }
 
   Future<void> restore() async {
+    // Selecionar arquivo
     final result = await FilePicker.platform.pickFiles(
       type: FileType.custom,
       allowedExtensions: ['sqlite'],
     );
 
     if (result != null && result.files.isNotEmpty) {
-      final bytes = result.files.single.bytes;
+      final file = result.files.single;
+      Uint8List? bytes;
 
+      // Tentativa de obter bytes diretamente
+      if (file.bytes != null) {
+        bytes = file.bytes;
+        if (kDebugMode) {
+          print('Bytes carregados diretamente.');
+        }
+      } else if (file.path != null) {
+        // Caso os bytes sejam nulos, lê do caminho do arquivo
+        final localFile = File(file.path!);
+        if (await localFile.exists()) {
+          bytes = await localFile.readAsBytes();
+          if (kDebugMode) {
+            print('Bytes lidos do caminho: ${file.path}');
+          }
+        } else {
+          if (kDebugMode) {
+            print('Arquivo não encontrado no caminho: ${file.path}');
+          }
+        }
+      }
+
+      // Verifica se os bytes foram carregados
       if (bytes != null) {
+        if (kDebugMode) {
+          print(
+              'Arquivo carregado com sucesso. Tamanho: ${bytes.length} bytes');
+        }
         try {
-          final request = http.MultipartRequest('POST', Uri.parse('$apiUrl/api/restore'))
-            ..files.add(http.MultipartFile.fromBytes(
-              'backupFile',
-              bytes,
-              filename: 'database-backup.sqlite',
-            ));
+          final request =
+              http.MultipartRequest('POST', Uri.parse('$apiUrl/api/restore'))
+                ..files.add(http.MultipartFile.fromBytes(
+                  'backupFile',
+                  bytes,
+                  filename: file.name,
+                ));
 
+          if (kDebugMode) {
+            print('Iniciando envio do arquivo...');
+          }
           final response = await request.send();
           final responseBody = await response.stream.bytesToString();
 
+          if (kDebugMode) {
+            print('Resposta do servidor: ${response.statusCode}');
+          }
           if (response.statusCode == 200) {
             _showSnackBar('Backup restaurado com sucesso!', Colors.green);
           } else {
-            _showSnackBar('Erro ao restaurar backup: ${response.statusCode}', Colors.red);
+            _showSnackBar(
+                'Erro ao restaurar backup: ${response.statusCode}', Colors.red);
             if (kDebugMode) {
-              print('Resposta do servidor: $responseBody');
+              print('Detalhes do erro: $responseBody');
             }
           }
-        } catch (error) {
-          _showSnackBar('Erro ao restaurar backup: $error', Colors.red);
+        } catch (e) {
+          if (kDebugMode) {
+            print('Erro durante o envio: $e');
+          }
+          _showSnackBar('Erro ao restaurar backup: $e', Colors.red);
         }
       } else {
-        _showSnackBar('Erro ao ler o arquivo.', Colors.red);
+        if (kDebugMode) {
+          print('Erro: não foi possível carregar os bytes do arquivo.');
+        }
+        _showSnackBar('Erro ao carregar o arquivo.', Colors.red);
       }
     } else {
-      _showSnackBar('Nenhum arquivo selecionado para restauração.', Colors.orange);
+      if (kDebugMode) {
+        print('Nenhum arquivo selecionado.');
+      }
+      _showSnackBar('Nenhum arquivo selecionado.', Colors.orange);
     }
   }
 
