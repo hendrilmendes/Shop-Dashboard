@@ -36,29 +36,39 @@ class _MachineScreenState extends State<MachineScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 16,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Configuração Inicial',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Configuração Inicial',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 const Text(
-                    'O dispositivo será configurado como servidor ou cliente?'),
+                  'Escolha como deseja configurar o dispositivo:',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 16),
+                ),
                 const SizedBox(height: 24),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.spaceEvenly,
                   children: [
-                    TextButton(
-                      style: TextButton.styleFrom(
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         setState(() {
@@ -67,14 +77,22 @@ class _MachineScreenState extends State<MachineScreen> {
                         Navigator.pop(context);
                         _saveServerConfig();
                       },
-                      child: const Text('Servidor',
-                          style: TextStyle(color: Colors.white)),
+                      icon: const Icon(Icons.cloud, color: Colors.white),
+                      label: const Text(
+                        'Servidor',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
-                    TextButton(
-                      style: TextButton.styleFrom(
+                    ElevatedButton.icon(
+                      style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.green,
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 12,
+                        ),
                         shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(8)),
+                          borderRadius: BorderRadius.circular(12),
+                        ),
                       ),
                       onPressed: () {
                         setState(() {
@@ -85,8 +103,11 @@ class _MachineScreenState extends State<MachineScreen> {
                           _showIpInput();
                         });
                       },
-                      child: const Text('Cliente',
-                          style: TextStyle(color: Colors.white)),
+                      icon: const Icon(Icons.devices, color: Colors.white),
+                      label: const Text(
+                        'Cliente',
+                        style: TextStyle(color: Colors.white),
+                      ),
                     ),
                   ],
                 ),
@@ -113,17 +134,19 @@ class _MachineScreenState extends State<MachineScreen> {
       context: context,
       builder: (BuildContext context) {
         return Dialog(
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           elevation: 16,
           child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                const Text('Informe o IP do Servidor',
-                    style:
-                        TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                const Text(
+                  'Informe o IP do Servidor',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
                 const SizedBox(height: 16),
                 TextField(
                   controller: ipController,
@@ -131,17 +154,30 @@ class _MachineScreenState extends State<MachineScreen> {
                     labelText: 'IP do servidor',
                     prefixIcon: const Icon(Icons.network_check),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.blue),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(color: Colors.blue),
                     ),
                     focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(8),
-                      borderSide: BorderSide(color: Colors.blue, width: 2),
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: const BorderSide(
+                        color: Colors.blue,
+                        width: 2,
+                      ),
                     ),
                   ),
                 ),
                 const SizedBox(height: 24),
                 ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 24,
+                      vertical: 12,
+                    ),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
                   onPressed: () async {
                     String ip = ipController.text.trim();
                     if (ip.isNotEmpty) {
@@ -153,7 +189,10 @@ class _MachineScreenState extends State<MachineScreen> {
                       _showRestartDialog();
                     }
                   },
-                  child: const Text('Salvar'),
+                  child: const Text(
+                    'Salvar',
+                    style: TextStyle(color: Colors.white),
+                  ),
                 ),
               ],
             ),
@@ -168,9 +207,13 @@ class _MachineScreenState extends State<MachineScreen> {
       context: context,
       builder: (BuildContext context) {
         return AlertDialog(
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(16),
+          ),
           title: const Text('Reinicie o Sistema'),
           content: const Text(
-              'As configurações foram aplicadas. Por favor, reinicie o sistema para que as alterações entrem em vigor.'),
+            'As configurações foram aplicadas. Por favor, reinicie o sistema para que as alterações entrem em vigor.',
+          ),
           actions: [
             TextButton(
               onPressed: () {
@@ -188,9 +231,7 @@ class _MachineScreenState extends State<MachineScreen> {
   _navigateToDashboard() {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(
-        builder: (context) => const DashboardScreen(),
-      ),
+      MaterialPageRoute(builder: (context) => const DashboardScreen()),
     );
   }
 
@@ -203,7 +244,17 @@ class _MachineScreenState extends State<MachineScreen> {
         elevation: 4,
       ),
       body: Center(
-        child: CircularProgressIndicator.adaptive(),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Carregando Configurações...',
+              style: TextStyle(fontSize: 18),
+            ),
+            const SizedBox(height: 16),
+            CircularProgressIndicator.adaptive(),
+          ],
+        ),
       ),
     );
   }

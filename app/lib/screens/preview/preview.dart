@@ -30,13 +30,10 @@ class ProductPreview extends StatelessWidget {
   Widget build(BuildContext context) {
     return Card(
       elevation: 4,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(16),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
       child: Padding(
-        padding: const EdgeInsets.all(16.0),
+        padding: const EdgeInsets.all(8.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
               'Pré-visualização do Produto',
@@ -48,14 +45,17 @@ class ProductPreview extends StatelessWidget {
                 borderRadius: BorderRadius.circular(8.0),
                 child: Image.network(
                   imageUrls[0],
-                  height: 150,
-                  width: double.infinity,
+                  width: MediaQuery.sizeOf(context).width * 0.2,
                   fit: BoxFit.cover,
                   errorBuilder: (context, error, stackTrace) {
                     return const Text(
                       'Erro ao carregar a imagem',
                       style: TextStyle(color: Colors.red),
                     );
+                  },
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return const Center(child: CircularProgressIndicator());
                   },
                 ),
               )
@@ -77,10 +77,7 @@ class ProductPreview extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               title.isEmpty ? 'Título do Produto' : title,
-              style: const TextStyle(
-                fontSize: 20,
-                fontWeight: FontWeight.bold,
-              ),
+              style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 8),
             Row(
@@ -109,9 +106,7 @@ class ProductPreview extends StatelessWidget {
             ),
             const SizedBox(height: 8),
             Text(
-              description.isEmpty
-                  ? 'Descrição do produto'
-                  : description,
+              description.isEmpty ? 'Descrição do produto' : description,
               style: const TextStyle(fontSize: 16, color: Colors.grey),
               maxLines: 4,
               overflow: TextOverflow.ellipsis,
@@ -121,10 +116,8 @@ class ProductPreview extends StatelessWidget {
               spacing: 8.0,
               runSpacing: 4.0,
               children: [
-                if (colors.isNotEmpty)
-                  _buildChip('Cores: $colors'),
-                if (sizes.isNotEmpty)
-                  _buildChip('Tamanhos: $sizes'),
+                if (colors.isNotEmpty) _buildChip('Cores: $colors'),
+                if (sizes.isNotEmpty) _buildChip('Tamanhos: $sizes'),
                 if (selectedCategory != null)
                   _buildChip('Categoria: $selectedCategory'),
                 if (shippingCost.isNotEmpty)

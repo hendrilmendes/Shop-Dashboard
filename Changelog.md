@@ -1,6 +1,29 @@
 Changelog
 
 ======================================================
+## [1.1.5]
+
+## Alterações
+
+*Frontend*
+
+### Correções
+
+- Melhorias na interface
+
+### Features
+
+- Agora e possivel anexar imagens ao cadastrar ou editar produtos
+- Veja no dashboard o total de pedidos
+
+*Backend*
+
+### Correções
+
+- Ajustes na geração do backup
+
+
+======================================================
 ## [1.1.4]
 
 ## Alterações

@@ -1,5 +1,3 @@
-import 'package:dashboard/widgets/products/desktop/card.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
@@ -9,173 +7,130 @@ class ProductCard extends StatelessWidget {
   final Product product;
   final VoidCallback onEdit;
 
-  const ProductCard({super.key, required this.product, required this.onEdit});
+  const ProductCard({
+    super.key,
+    required this.product,
+    required this.onEdit,
+  });
 
   @override
   Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (kDebugMode) {
-          print('Current maxWidth: ${constraints.maxWidth}');
-        }
-        if (constraints.maxWidth < 256.75) {
-          return _buildSmallScreenLayout(context);
-        } else {
-          return _buildLargeScreenLayout(context);
-        }
-      },
-    );
-  }
+    final theme = Theme.of(context);
+    final colorScheme = theme.colorScheme;
+    final textTheme = theme.textTheme;
 
-  Widget _buildSmallScreenLayout(BuildContext context) {
-    final NumberFormat formatter = NumberFormat('#,##0.00', 'pt_BR');
-    final formattedPrice = formatter.format(product.price);
+    final formattedPrice = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    ).format(product.price);
+    
+    final discountedPrice = product.price * (1 - (product.discount / 100));
+    final formattedDiscountedPrice = NumberFormat.currency(
+      locale: 'pt_BR',
+      symbol: 'R\$',
+    ).format(discountedPrice);
 
-    final double discountedPrice;
-    discountedPrice = product.price * (1 - (product.discount / 100));
-    final formattedDiscountedPrice = formatter.format(discountedPrice);
-
-    return GestureDetector(
-      onTap: onEdit,
-      child: Card(
-        clipBehavior: Clip.hardEdge,
-        elevation: 4,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(15),
+    return Card(
+      elevation: 0,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: theme.dividerColor.withOpacity(0.1),
+          width: 1,
         ),
-        child: Stack(
-          children: <Widget>[
-            AspectRatio(
-              aspectRatio: 3 / 2,
-              child: ClipRRect(
-                borderRadius: const BorderRadius.only(
-                  topLeft: Radius.circular(15),
-                  topRight: Radius.circular(15),
+      ),
+      clipBehavior: Clip.antiAlias,
+      child: InkWell(
+        borderRadius: BorderRadius.circular(12),
+        onTap: onEdit,
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            // Imagem do produto
+            Stack(
+              children: [
+                AspectRatio(
+                  aspectRatio: 1,
+                  child: _buildProductImage(),
                 ),
-                child: product.imageUrls.isNotEmpty
-                    ? Image.network(
-                        product.imageUrls.first,
-                        loadingBuilder: (BuildContext context, Widget child,
-                            ImageChunkEvent? loadingProgress) {
-                          if (loadingProgress == null) {
-                            return child;
-                          } else {
-                            return Shimmer.fromColors(
-                              baseColor: Colors.grey[300]!,
-                              highlightColor: Colors.grey[100]!,
-                              child: Container(
-                                color: Colors.white,
-                              ),
-                            );
-                          }
-                        },
-                        errorBuilder: (BuildContext context, Object error,
-                            StackTrace? stackTrace) {
-                          return const Icon(Icons.error);
-                        },
-                        fit: BoxFit.cover,
-                      )
-                    : const Placeholder(),
-              ),
+                if (product.discount > 0)
+                  Positioned(
+                    top: 8,
+                    left: 8,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 6,
+                        vertical: 2,
+                      ),
+                      decoration: BoxDecoration(
+                        color: colorScheme.primary,
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Text(
+                        '-${product.discount.round()}%',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.onPrimary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
             ),
-            if (product.isOutOfStock)
-              Positioned(
-                top: 0,
-                right: 0,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    bottomLeft: Radius.circular(10),
-                    topRight: Radius.circular(15),
-                  ),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    color: Colors.red,
-                    child: const Text(
-                      'Esgotado',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            if (product.discount > 0)
-              Positioned(
-                top: 0,
-                left: 0,
-                child: ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    bottomRight: Radius.circular(10),
-                    topLeft: Radius.circular(15),
-                  ),
-                  child: Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    color: Colors.green,
-                    child: Text(
-                      '${product.discount.toStringAsFixed(0)}% OFF',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-              ),
-            Positioned(
-              bottom: 0,
-              left: 0,
-              right: 0,
+
+            // Informações do produto
+            Padding(
+              padding: const EdgeInsets.all(10),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: Text(
-                      product.title,
-                      style: const TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
+                children: [
+                  // Título
+                  Text(
+                    product.title,
+                    style: textTheme.bodyMedium?.copyWith(
+                      fontWeight: FontWeight.w600,
+                    ),
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+
+                  const SizedBox(height: 6),
+
+                  // Preço
+                  Row(
+                    children: [
+                      if (product.discount > 0)
+                        Text(
+                          formattedPrice,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: colorScheme.error,
+                            decoration: TextDecoration.lineThrough,
+                          ),
+                        ),
+                      if (product.discount > 0) const SizedBox(width: 6),
+                      Text(
+                        formattedDiscountedPrice,
+                        style: textTheme.bodyLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: product.discount > 0
+                              ? colorScheme.primary
+                              : colorScheme.onSurface,
+                        ),
+                      ),
+                    ],
+                  ),
+
+                  if (product.isOutOfStock)
+                    Padding(
+                      padding: const EdgeInsets.only(top: 4),
+                      child: Text(
+                        'Esgotado',
+                        style: textTheme.labelSmall?.copyWith(
+                          color: colorScheme.error,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 8.0),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        if (product.discount > 0)
-                          Text(
-                            'R\$ $formattedPrice',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Colors.grey,
-                              decoration: TextDecoration.lineThrough,
-                            ),
-                          ),
-                        if (product.discount > 0)
-                          Text(
-                            'R\$ $formattedDiscountedPrice',
-                            style: const TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.bold,
-                              color: Colors.red,
-                            ),
-                          )
-                        else
-                          Text(
-                            'R\$ $formattedPrice',
-                            style: const TextStyle(
-                              fontSize: 14,
-                            ),
-                          ),
-                      ],
-                    ),
-                  ),
                 ],
               ),
             ),
@@ -185,10 +140,43 @@ class ProductCard extends StatelessWidget {
     );
   }
 
-  Widget _buildLargeScreenLayout(BuildContext context) {
-    return ProductCardDesktop(
-      product: product,
-      onEdit: onEdit,
+  Widget _buildProductImage() {
+    if (product.imageUrls.isEmpty) {
+      return Container(
+        color: Colors.grey[100],
+        child: const Center(
+          child: Icon(
+            Icons.image_outlined,
+            size: 32,
+            color: Colors.grey,
+          ),
+        ),
+      );
+    }
+
+    return Image.network(
+      product.imageUrls.first,
+      fit: BoxFit.cover,
+      loadingBuilder: (context, child, loadingProgress) {
+        if (loadingProgress == null) return child;
+        return Shimmer.fromColors(
+          baseColor: Colors.grey[200]!,
+          highlightColor: Colors.grey[100]!,
+          child: Container(color: Colors.white),
+        );
+      },
+      errorBuilder: (context, error, stackTrace) {
+        return Container(
+          color: Colors.grey[100],
+          child: const Center(
+            child: Icon(
+              Icons.broken_image_outlined,
+              size: 32,
+              color: Colors.grey,
+            ),
+          ),
+        );
+      },
     );
   }
 }

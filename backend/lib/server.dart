@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
+import 'package:archive/archive.dart';
 import 'package:mime/mime.dart';
 import 'package:shelf/shelf.dart';
 import 'package:shelf/shelf_io.dart' as io;
@@ -74,47 +75,62 @@ void main() async {
     ACCESS_CONTROL_ALLOW_ORIGIN: '*',
     ACCESS_CONTROL_ALLOW_HEADERS: '*',
     ACCESS_CONTROL_ALLOW_METHODS: 'GET,POST,PUT,DELETE,OPTIONS',
-    'Content-Type': 'application/json;charset=utf-8'
+    'Content-Type': 'application/json;charset=utf-8',
   };
 
   // Route Raiz
   router.get('/', (Request request) async {
     return Response.ok(
-        'Bem vindo a API! Navegue para /api/products, /api/orders ou /api/categories para mais opções.',
-        headers: {'Content-Type': 'text/plain'});
+      'Bem vindo a API! Navegue para /api/products, /api/orders ou /api/categories para mais opções.',
+      headers: {'Content-Type': 'text/plain'},
+    );
   });
 
   // Adicionar Produtos
   router.post('/api/products', (Request request) async {
     try {
-      final body = await request.readAsString();
-      final data = jsonDecode(body);
+      final data = jsonDecode(await request.readAsString());
 
-      db.execute('''
-      INSERT INTO Product (title, description, price, imageUrls, colors, sizes, shippingCost, category, isOutOfStock, discount)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ''', [
-        data['title'],
-        data['description'],
-        data['price'],
-        (data['imageUrls'] as List).join(';'),
-        (data['colors'] as List).join(','),
-        (data['sizes'] as List).join(','),
-        data['shippingCost'],
-        data['category'],
-        (data['isOutOfStock'] ?? false)
-            ? 1
-            : 0, // Usando valor padrão false se for null
-        data['discount']
-      ]);
+      // Valida imagens
+      if (data['imageNames'] == null || (data['imageNames'] as List).isEmpty) {
+        return Response.badRequest(
+          body: jsonEncode({'error': 'Pelo menos uma imagem é necessária'}),
+        );
+      }
 
-      return Response.ok(jsonEncode({'status': 'Product added'}),
-          headers: {'Content-Type': 'application/json'});
+      // Converte lista de nomes para string separada por ;
+      final imageNames = (data['imageNames'] as List).join(';');
+
+      db.execute(
+        '''
+      INSERT INTO Product (
+        title, description, price, imageUrls, colors, sizes, 
+        shippingCost, category, isOutOfStock, discount
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ''',
+        [
+          data['title'],
+          data['description'],
+          data['price'],
+          imageNames,
+          (data['colors'] as List).join(','),
+          (data['sizes'] as List).join(','),
+          data['shippingCost'],
+          data['category'],
+          (data['isOutOfStock'] ?? false) ? 1 : 0,
+          data['discount'],
+        ],
+      );
+
+      return Response.ok(
+        jsonEncode({'message': 'Produto cadastrado com sucesso'}),
+      );
     } catch (e) {
-      return Response(500,
-          body: jsonEncode(
-              {'message': 'Internal server error', 'error': e.toString()}),
-          headers: {'Content-Type': 'application/json'});
+      return Response.internalServerError(
+        body: jsonEncode({
+          'error': 'Erro ao cadastrar produto: ${e.toString()}',
+        }),
+      );
     }
   });
 
@@ -125,18 +141,32 @@ void main() async {
 
       if (products.isEmpty) {
         return Response.ok(
-            jsonEncode([]), // Retorne uma lista vazia se não houver produtos
-            headers: {'Content-Type': 'application/json'});
+          jsonEncode([]),
+          headers: {'Content-Type': 'application/json'},
+        );
       }
 
       return Response.ok(
-          jsonEncode(products.map((product) {
+        jsonEncode(
+          products.map((product) {
+            // Converte a string de imageUrls para lista
+            final imageUrls = (product['imageUrls'] as String).split(';');
+
+            // Constrói as URLs completas
+            final fullImageUrls =
+                imageUrls
+                    .map(
+                      (imageName) =>
+                          '${request.requestedUri.origin}/uploads/$imageName',
+                    )
+                    .toList();
+
             return {
               'id': product['id'],
               'title': product['title'],
               'description': product['description'],
               'price': product['price'],
-              'imageUrls': (product['imageUrls'] as String).split(';'),
+              'imageUrls': fullImageUrls, // Usa as URLs completas
               'colors': (product['colors'] as String).split(','),
               'sizes': (product['sizes'] as String).split(','),
               'shippingCost': product['shippingCost'],
@@ -144,51 +174,231 @@ void main() async {
               'isOutOfStock': product['isOutOfStock'] == 1,
               'discount': product['discount'],
             };
-          }).toList()), // Converta para uma lista
-          headers: {'Content-Type': 'application/json'});
+          }).toList(),
+        ),
+        headers: {'Content-Type': 'application/json'},
+      );
     } catch (e) {
-      return Response(500,
-          body: jsonEncode(
-              {'message': 'Erro ao listar produtos', 'error': e.toString()}),
-          headers: {'Content-Type': 'application/json'});
+      return Response.internalServerError(
+        body: jsonEncode({
+          'message': 'Erro ao listar produtos',
+          'error': e.toString(),
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
     }
   });
 
   // Atualizar Produto
   router.put('/api/products/<id>', (Request request, String id) async {
-    final body = await request.readAsString();
-    final data = jsonDecode(body);
+    try {
+      final body = await request.readAsString();
+      final data = jsonDecode(body);
 
-    // Atualizar o produto
-    db.execute('''
-    UPDATE Product
-    SET title = ?, description = ?, price = ?, imageUrls = ?, colors = ?, sizes = ?, shippingCost = ?, category = ?, isOutOfStock = ?, discount = ?
-    WHERE id = ?
-  ''', [
-      data['title'],
-      data['description'],
-      data['price'],
-      (data['imageUrls'] as List).join(';'),
-      (data['colors'] as List).join(','),
-      (data['sizes'] as List).join(','),
-      data['shippingCost'],
-      data['category'],
-      data['isOutOfStock'] ? 1 : 0,
-      data['discount'],
-      id
-    ]);
+      // Validação básica
+      if (data['title'] == null || data['title'].toString().isEmpty) {
+        return Response.badRequest(
+          body: jsonEncode({'error': 'O título do produto é obrigatório'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
 
-    // Verificar se o produto foi atualizado
-    final result = db.select('SELECT changes() as updatedRows');
-    final updatedRows =
-        result.isNotEmpty ? result.first['updatedRows'] as int : 0;
+      // Verificar se existem imagens (não é mais obrigatório para atualização)
+      final imageNames =
+          data['imageNames'] != null
+              ? (data['imageNames'] as List).join(';')
+              : null;
 
-    if (updatedRows == 0) {
-      return Response.notFound(jsonEncode({'message': 'Product not found'}));
+      // Obter o produto atual para manter imagens existentes se não forem fornecidas novas
+      final currentProduct = db.select(
+        'SELECT imageUrls FROM Product WHERE id = ?',
+        [id],
+      );
+
+      if (currentProduct.isEmpty) {
+        return Response.notFound(
+          jsonEncode({'message': 'Produto não encontrado'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      // Se não foram fornecidas novas imagens, manter as existentes
+      final imagesToUse =
+          imageNames ?? currentProduct.first['imageUrls'] as String;
+
+      // Atualizar o produto
+      db.execute(
+        '''
+      UPDATE Product
+      SET 
+        title = ?, 
+        description = ?, 
+        price = ?, 
+        imageUrls = ?, 
+        colors = ?, 
+        sizes = ?, 
+        shippingCost = ?, 
+        category = ?, 
+        isOutOfStock = ?, 
+        discount = ?
+      WHERE id = ?
+      ''',
+        [
+          data['title'],
+          data['description'],
+          data['price'],
+          imagesToUse,
+          (data['colors'] as List).join(','),
+          (data['sizes'] as List).join(','),
+          data['shippingCost'],
+          data['category'],
+          data['isOutOfStock'] ? 1 : 0,
+          data['discount'],
+          id,
+        ],
+      );
+
+      // Obter o produto atualizado para retornar
+      final updatedProduct = db.select('SELECT * FROM Product WHERE id = ?', [
+        id,
+      ]);
+
+      if (updatedProduct.isEmpty) {
+        return Response.internalServerError(
+          body: jsonEncode({'error': 'Erro ao recuperar produto atualizado'}),
+          headers: {'Content-Type': 'application/json'},
+        );
+      }
+
+      final product = updatedProduct.first;
+      return Response.ok(
+        jsonEncode({
+          'message': 'Produto atualizado com sucesso',
+          'product': {
+            'id': product['id'],
+            'title': product['title'],
+            'description': product['description'],
+            'price': product['price'],
+            'imageUrls': (product['imageUrls'] as String).split(';'),
+            'colors': (product['colors'] as String).split(','),
+            'sizes': (product['sizes'] as String).split(','),
+            'shippingCost': product['shippingCost'],
+            'category': product['category'],
+            'isOutOfStock': product['isOutOfStock'] == 1,
+            'discount': product['discount'],
+          },
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({
+          'error': 'Erro ao atualizar produto',
+          'details': e.toString(),
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
+    }
+  });
+
+  // Envia Imagem Produto
+  router.post('/api/upload', (Request request) async {
+    try {
+      // Verifica se é multipart
+      final contentType = request.headers['content-type'];
+      if (contentType == null || !contentType.contains('multipart/form-data')) {
+        return Response.badRequest(
+          body: jsonEncode({
+            'error': 'Content-Type must be multipart/form-data',
+          }),
+        );
+      }
+
+      // Cria diretório de uploads
+      final uploadDir = Directory('uploads');
+      if (!await uploadDir.exists()) {
+        await uploadDir.create(recursive: true);
+      }
+
+      List<String> imageUrls = [];
+      final boundary = contentType.split('boundary=')[1];
+      final transformer =
+          MimeMultipartTransformer(boundary).cast<Uint8List, MimeMultipart>();
+
+      await for (final part in request.read().transform(transformer)) {
+        final contentDisposition = part.headers['content-disposition'] ?? '';
+        final filenameMatch = RegExp(
+          r'filename="([^"]+)"',
+        ).firstMatch(contentDisposition);
+
+        if (filenameMatch != null) {
+          final filename = filenameMatch.group(1)!;
+          final extension = p.extension(filename).toLowerCase();
+
+          if (!['.jpg', '.jpeg', '.png', '.gif', '.webp'].contains(extension)) {
+            continue;
+          }
+
+          final timestamp = DateTime.now().millisecondsSinceEpoch;
+          final newFilename = 'image_$timestamp$extension';
+          final file = File('${uploadDir.path}/$newFilename');
+
+          // Salva o arquivo
+          await file.openWrite().addStream(part);
+
+          // Salva apenas o nome do arquivo no banco
+          imageUrls.add(newFilename);
+        }
+      }
+
+      if (imageUrls.isEmpty) {
+        return Response.badRequest(
+          body: jsonEncode({'error': 'Nenhuma imagem válida foi enviada'}),
+        );
+      }
+
+      return Response.ok(
+        jsonEncode({
+          'message': 'Imagens enviadas com sucesso',
+          'imageNames': imageUrls, // Retorna apenas os nomes dos arquivos
+        }),
+      );
+    } catch (e) {
+      return Response.internalServerError(
+        body: jsonEncode({'error': 'Falha no upload: ${e.toString()}'}),
+      );
+    }
+  });
+
+  // Obter Imagem Produto
+  String getContentType(String filename) {
+    final ext = p.extension(filename).toLowerCase();
+    switch (ext) {
+      case '.jpg':
+      case '.jpeg':
+        return 'image/jpeg';
+      case '.png':
+        return 'image/png';
+      case '.gif':
+        return 'image/gif';
+      case '.webp':
+        return 'image/webp';
+      default:
+        return 'application/octet-stream';
+    }
+  }
+
+  router.get('/uploads/<imageName>', (Request request, String imageName) async {
+    final file = File('uploads/$imageName');
+
+    if (await file.exists()) {
+      return Response.ok(
+        file.openRead(),
+        headers: {'Content-Type': getContentType(imageName)},
+      );
     }
 
-    return Response.ok(jsonEncode({'status': 'Product updated'}),
-        headers: {'Content-Type': 'application/json'});
+    return Response.notFound('Imagem não encontrada');
   });
 
   // Apagar Produto
@@ -205,8 +415,10 @@ void main() async {
       return Response.notFound(jsonEncode({'message': 'Product not found'}));
     }
 
-    return Response.ok(jsonEncode({'status': 'Product deleted'}),
-        headers: {'Content-Type': 'application/json'});
+    return Response.ok(
+      jsonEncode({'status': 'Product deleted'}),
+      headers: {'Content-Type': 'application/json'},
+    );
   });
 
   // Obter produto pelo ID
@@ -232,8 +444,10 @@ void main() async {
       'discount': productData['discount'],
     };
 
-    return Response.ok(jsonEncode(productResponse),
-        headers: {'Content-Type': 'application/json'});
+    return Response.ok(
+      jsonEncode(productResponse),
+      headers: {'Content-Type': 'application/json'},
+    );
   });
 
   // Adicionar Categoria
@@ -255,7 +469,7 @@ void main() async {
         jsonEncode({
           'id': db.lastInsertRowId,
           'name': data['name'],
-          'message': 'Categoria Adicionada'
+          'message': 'Categoria Adicionada',
         }),
         headers: {'Content-Type': 'application/json'},
       );
@@ -272,9 +486,10 @@ void main() async {
   router.get('/api/categories', (Request request) async {
     try {
       final result = db.select('SELECT id, name FROM Category');
-      final List<Map<String, dynamic>> categories = result.map((row) {
-        return {'id': row['id'], 'name': row['name']};
-      }).toList();
+      final List<Map<String, dynamic>> categories =
+          result.map((row) {
+            return {'id': row['id'], 'name': row['name']};
+          }).toList();
       return Response.ok(
         jsonEncode(categories),
         headers: {'Content-Type': 'application/json'},
@@ -291,14 +506,14 @@ void main() async {
   // Apagar Categoria
   router.delete('/api/categories/<id>', (Request request, String id) async {
     try {
-      final result = db
-          .select('SELECT COUNT(*) AS count FROM Category WHERE id = ?', [id]);
+      final result = db.select(
+        'SELECT COUNT(*) AS count FROM Category WHERE id = ?',
+        [id],
+      );
       final count = result.isNotEmpty ? result.first['count'] as int : 0;
 
       if (count == 0) {
-        return Response.notFound(
-          jsonEncode({'message': 'Category not found'}),
-        );
+        return Response.notFound(jsonEncode({'message': 'Category not found'}));
       }
 
       db.execute('DELETE FROM Category WHERE id = ?', [id]);
@@ -332,13 +547,19 @@ void main() async {
       LEFT JOIN OrderItem ON "CustomerOrder".id = OrderItem.orderId
       GROUP BY "CustomerOrder".id
     ''');
-      return Response.ok(jsonEncode(orders),
-          headers: {'Content-Type': 'application/json'});
+      return Response.ok(
+        jsonEncode(orders),
+        headers: {'Content-Type': 'application/json'},
+      );
     } catch (e) {
-      return Response(500,
-          body: jsonEncode(
-              {'message': 'Erro ao obter pedidos', 'error': e.toString()}),
-          headers: {'Content-Type': 'application/json'});
+      return Response(
+        500,
+        body: jsonEncode({
+          'message': 'Erro ao obter pedidos',
+          'error': e.toString(),
+        }),
+        headers: {'Content-Type': 'application/json'},
+      );
     }
   });
 
@@ -348,36 +569,44 @@ void main() async {
     final data = jsonDecode(body);
 
     // Insere o pedido e obtém o ID da última linha inserida
-    db.execute('''
+    db.execute(
+      '''
     INSERT INTO "CustomerOrder" (customerName, address, paymentMethod, amount, date)
     VALUES (?, ?, ?, ?, ?)
-  ''', [
-      data['customerName'],
-      data['address'],
-      data['paymentMethod'],
-      data['amount'],
-      DateTime.now().toIso8601String()
-    ]);
+  ''',
+      [
+        data['customerName'],
+        data['address'],
+        data['paymentMethod'],
+        data['amount'],
+        DateTime.now().toIso8601String(),
+      ],
+    );
 
     final orderId = db.lastInsertRowId;
 
     // Insere os itens do pedido
     for (var item in data['items']) {
-      db.execute('''
+      db.execute(
+        '''
       INSERT INTO OrderItem (title, quantity, price, color, size, orderId)
       VALUES (?, ?, ?, ?, ?, ?)
-    ''', [
-        item['title'],
-        item['quantity'],
-        item['price'],
-        item['color'],
-        item['size'],
-        orderId
-      ]);
+    ''',
+        [
+          item['title'],
+          item['quantity'],
+          item['price'],
+          item['color'],
+          item['size'],
+          orderId,
+        ],
+      );
     }
 
-    return Response.ok(jsonEncode({'status': 'Order created'}),
-        headers: {'Content-Type': 'application/json'});
+    return Response.ok(
+      jsonEncode({'status': 'Order created'}),
+      headers: {'Content-Type': 'application/json'},
+    );
   });
 
   // Apagar DB
@@ -386,25 +615,54 @@ void main() async {
     db.execute('DELETE FROM Category');
     db.execute('DELETE FROM CustomerOrder');
     db.execute('DELETE FROM OrderItem');
-    return Response.ok(jsonEncode({'status': 'Dados Apagados'}),
-        headers: {'Content-Type': 'application/json'});
+    return Response.ok(
+      jsonEncode({'status': 'Dados Apagados'}),
+      headers: {'Content-Type': 'application/json'},
+    );
   });
 
   // Backup DB
   router.get('/api/backup', (Request request) async {
-    final backupFile =
-        p.join(Directory.current.path, 'backup', 'database-backup.sqlite');
-    final file = File(backupFile);
-    file.createSync(recursive: true);
-    File(dbPath).copySync(backupFile);
+    // Cria um arquivo ZIP
+    final archive = Archive();
 
-    final backupBytes = file.readAsBytesSync();
+    // Adiciona o banco de dados ao ZIP
+    final dbFile = File(dbPath);
+    if (await dbFile.exists()) {
+      archive.addFile(
+        ArchiveFile(
+          'database.sqlite',
+          dbFile.lengthSync(),
+          dbFile.readAsBytesSync(),
+        ),
+      );
+    }
+
+    // Adiciona a pasta 'uploads/' ao ZIP (se existir)
+    final uploadsDir = Directory('uploads');
+    if (await uploadsDir.exists()) {
+      for (final file in uploadsDir.listSync(recursive: true)) {
+        if (file is File) {
+          final relativePath = p.relative(file.path, from: uploadsDir.path);
+          archive.addFile(
+            ArchiveFile(
+              'uploads/$relativePath',
+              file.lengthSync(),
+              file.readAsBytesSync(),
+            ),
+          );
+        }
+      }
+    }
+
+    // Converte o ZIP para bytes
+    final zipBytes = ZipEncoder().encode(archive);
 
     return Response.ok(
-      backupBytes,
+      zipBytes,
       headers: {
-        'Content-Type': 'application/octet-stream',
-        'Content-Disposition': 'attachment; filename=database-backup.sqlite'
+        'Content-Type': 'application/zip',
+        'Content-Disposition': 'attachment; filename=full-backup.zip',
       },
     );
   });
@@ -414,8 +672,10 @@ void main() async {
     try {
       final contentType = request.headers['Content-Type'] ?? '';
       if (!contentType.contains('multipart/form-data')) {
-        return Response(400,
-            body: 'Requisição inválida. Esperado multipart/form-data.');
+        return Response(
+          400,
+          body: 'Requisição inválida. Esperado multipart/form-data.',
+        );
       }
 
       // Cria um MultipartRequest para processar multipart/form-data
@@ -428,8 +688,10 @@ void main() async {
         final disposition = part.headers['content-disposition'] ?? '';
         if (disposition.contains('name="backupFile"')) {
           final backupFile = File(dbPath);
-          final bytes = await part
-              .fold<List<int>>([], (buffer, data) => buffer..addAll(data));
+          final bytes = await part.fold<List<int>>(
+            [],
+            (buffer, data) => buffer..addAll(data),
+          );
 
           // Substitui o banco de dados existente pelo backup
           await backupFile.writeAsBytes(bytes);
@@ -438,13 +700,17 @@ void main() async {
           db.dispose();
           db = openDatabaseConnection();
 
-          return Response.ok('Backup restaurado com sucesso.',
-              headers: {'Content-Type': 'application/json'});
+          return Response.ok(
+            'Backup restaurado com sucesso.',
+            headers: {'Content-Type': 'application/json'},
+          );
         }
       }
 
-      return Response(400,
-          body: 'Arquivo de backup não encontrado na requisição.');
+      return Response(
+        400,
+        body: 'Arquivo de backup não encontrado na requisição.',
+      );
     } catch (e) {
       print('Erro ao restaurar o backup: ${e.toString()}');
       return Response(500, body: 'Erro ao restaurar o backup: ${e.toString()}');
@@ -453,9 +719,9 @@ void main() async {
 
   // Adiciona o middleware de logging e CORS ao pipeline
   final handler = const Pipeline()
-      .addMiddleware(corsHeaders(headers: overrideHeaders))
       .addMiddleware(logRequests())
-      .addHandler(router.call);
+      .addMiddleware(corsHeaders(headers: overrideHeaders))
+      .addHandler(Cascade().add(router.call).handler);
 
   final server = await io.serve(handler, '0.0.0.0', 3000);
   print('Servidor iniciado: http://${server.address.host}:${server.port}');

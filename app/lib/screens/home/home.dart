@@ -1,9 +1,12 @@
 import 'dart:io';
+import 'package:dashboard/provider/orders_provider.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+
+import 'package:provider/provider.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
@@ -17,12 +20,14 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<String>? _weatherData;
   String? _cityName;
   Future<String> _motivationalQuote = Future.value('Carregando...');
+  int _orderCount = 0;
 
   @override
   void initState() {
     super.initState();
     _requestLocationPermission();
     _fetchMotivationalQuote();
+    _fetchOrderCount();
   }
 
   Future<void> _requestLocationPermission() async {
@@ -70,8 +75,9 @@ class _HomeScreenState extends State<HomeScreen> {
   Future<void> _getLocation() async {
     try {
       Position position = await Geolocator.getCurrentPosition(
-          // ignore: deprecated_member_use
-          desiredAccuracy: LocationAccuracy.high);
+        // ignore: deprecated_member_use
+        desiredAccuracy: LocationAccuracy.high,
+      );
       _getCityNameFromLocation(position.latitude, position.longitude);
     } catch (e) {
       setState(() {
@@ -84,10 +90,15 @@ class _HomeScreenState extends State<HomeScreen> {
   }
 
   Future<void> _getCityNameFromLocation(
-      double latitude, double longitude) async {
+    double latitude,
+    double longitude,
+  ) async {
     try {
-      final response = await http.get(Uri.parse(
-          'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude'));
+      final response = await http.get(
+        Uri.parse(
+          'https://nominatim.openstreetmap.org/reverse?format=json&lat=$latitude&lon=$longitude',
+        ),
+      );
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
@@ -147,8 +158,11 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Future<void> _fetchMotivationalQuote() async {
     try {
-      final response = await http.get(Uri.parse(
-          'https://testefunctionsbeto.azurewebsites.net/api/frases-api'));
+      final response = await http.get(
+        Uri.parse(
+          'https://testefunctionsbeto.azurewebsites.net/api/frases-api',
+        ),
+      );
 
       if (response.statusCode == 200) {
         final jsonData = jsonDecode(response.body);
@@ -161,14 +175,29 @@ class _HomeScreenState extends State<HomeScreen> {
         });
       } else {
         setState(() {
-          _motivationalQuote =
-              Future.value('Erro ao carregar a frase motivacional');
+          _motivationalQuote = Future.value(
+            'Erro ao carregar a frase motivacional',
+          );
         });
       }
     } catch (e) {
       setState(() {
         _motivationalQuote = Future.value('Erro: $e');
       });
+    }
+  }
+
+  Future<void> _fetchOrderCount() async {
+    try {
+      final orderProvider = Provider.of<OrderProvider>(context, listen: false);
+      await orderProvider.fetchOrders();
+      setState(() {
+        _orderCount = orderProvider.orders.length;
+      });
+    } catch (e) {
+      if (kDebugMode) {
+        print('Error fetching order count: $e');
+      }
     }
   }
 
@@ -186,6 +215,7 @@ class _HomeScreenState extends State<HomeScreen> {
                 const SizedBox(height: 40),
                 _buildWelcomeSection(),
                 const SizedBox(height: 40),
+                _buildOrderCountCard(),
               ],
             ),
           ),
@@ -198,18 +228,6 @@ class _HomeScreenState extends State<HomeScreen> {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        Row(
-          children: [
-            const Icon(Icons.emoji_people_outlined, size: 40),
-            const SizedBox(width: 10),
-            Text(
-              'Bem vindo',
-              style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-            ),
-          ],
-        ),
         FutureBuilder<String>(
           future: _weatherData,
           builder: (context, snapshot) {
@@ -225,10 +243,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     style: const TextStyle(fontSize: 16),
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    snapshot.data!,
-                    style: const TextStyle(fontSize: 16),
-                  ),
+                  Text(snapshot.data!, style: const TextStyle(fontSize: 16)),
                   const SizedBox(width: 8),
                   const Icon(Icons.wb_sunny, color: Colors.orange, size: 30),
                 ],
@@ -255,15 +270,55 @@ class _HomeScreenState extends State<HomeScreen> {
             return Text(
               snapshot.data!,
               style: const TextStyle(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  fontStyle: FontStyle.italic),
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+                fontStyle: FontStyle.italic,
+              ),
               textAlign: TextAlign.center,
             );
           } else {
             return const SizedBox.shrink();
           }
         },
+      ),
+    );
+  }
+
+  Widget _buildOrderCountCard() {
+    return Card(
+      elevation: 4,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      child: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              children: [
+                Icon(Icons.shopping_bag, color: Colors.blue[700], size: 28),
+                const SizedBox(width: 10),
+                Text(
+                  'Pedidos Realizados',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue[700],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 10),
+            Text(
+              'Total: $_orderCount',
+              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 5),
+            Text(
+              'Todos os pedidos já feitos no sistema',
+              style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,32 +1,29 @@
 name: backend
 description: A sample command-line application.
-version: 1.1.4+113
-# repository: https://github.com/my_org/my_repo
 
 environment:
-  sdk: ^3.6.0
+  sdk: ^3.7.0
 
 dependencies:
+
+# Archive
+  archive: ^4.0.5
+
 # Mime
-  mime: ^1.0.6
+  mime: ^2.0.0
 
 # Path
   path: ^1.9.1
 
 # Shelf
   shelf: ^1.4.1
-
-# Shelf_cors_headers
   shelf_cors_headers: ^0.1.5
-
-# Shelf_multipart
+  shelf_static: ^1.1.1
   shelf_multipart: ^2.0.0
-
-# shelf_router
   shelf_router: ^1.1.4
 
 # Sqlite3
-  sqlite3: ^2.4.7
+  sqlite3: ^2.7.5
  
 
 dev_dependencies:

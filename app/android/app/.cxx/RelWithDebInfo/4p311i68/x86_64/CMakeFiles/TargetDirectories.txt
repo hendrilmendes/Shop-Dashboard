@@ -1,0 +1,2 @@
+/home/hendril/Documentos/GitHub/Shop-Dashboard/app/android/app/.cxx/RelWithDebInfo/4p311i68/x86_64/CMakeFiles/edit_cache.dir
+/home/hendril/Documentos/GitHub/Shop-Dashboard/app/android/app/.cxx/RelWithDebInfo/4p311i68/x86_64/CMakeFiles/rebuild_cache.dir

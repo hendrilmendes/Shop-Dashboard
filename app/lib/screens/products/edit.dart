@@ -1,136 +1,176 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:dashboard/api/api.dart';
 import 'package:dashboard/screens/preview/preview.dart';
-import 'package:dashboard/screens/products/desktop/edit.dart';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
+import 'package:file_picker/file_picker.dart';
+import 'dart:io';
+import 'package:http_parser/http_parser.dart';
 
 class EditProductScreen extends StatefulWidget {
   final String productId;
+  final Map<String, dynamic> initialProductData;
 
-  const EditProductScreen({super.key, required this.productId});
+  const EditProductScreen({
+    super.key,
+    required this.productId,
+    required this.initialProductData,
+  });
 
   @override
-  // ignore: library_private_types_in_public_api
-  _EditProductScreenState createState() => _EditProductScreenState();
+  State<EditProductScreen> createState() => _EditProductScreenDesktopState();
 }
 
-class _EditProductScreenState extends State<EditProductScreen> {
+class _EditProductScreenDesktopState extends State<EditProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _discountController = TextEditingController();
-  final _colorsController = TextEditingController();
-  final _sizesController = TextEditingController();
-  final _shippingCostController = TextEditingController();
-  String? _selectedCategory;
-  final List<TextEditingController> _imageUrls = [];
-  bool _isOutOfStock = false;
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+  final TextEditingController _priceController = TextEditingController();
+  final TextEditingController _discountController = TextEditingController();
+  final TextEditingController _shippingCostController = TextEditingController();
+  final TextEditingController _colorsController = TextEditingController();
+  final TextEditingController _sizesController = TextEditingController();
 
-  String _message = '';
-  Color _messageColor = Colors.black;
-  bool _isLoading = false;
+  final List<PlatformFile> _selectedImages = [];
+  List<String> _uploadedImageUrls = [];
+
+  String? _selectedCategory;
   List<String> _categories = [];
+  bool _isLoading = false;
+  String _message = '';
+  Color _messageColor = Colors.green;
+  bool _isOutOfStock = false;
 
   @override
   void initState() {
     super.initState();
     _loadCategories();
-    _loadProductDetails();
+    _initializeForm();
+  }
+
+  void _initializeForm() {
+    final product = widget.initialProductData;
+    _titleController.text = product['title'] ?? '';
+    _descriptionController.text = product['description'] ?? '';
+    _priceController.text = product['price']?.toString() ?? '';
+    _discountController.text = product['discount']?.toString() ?? '';
+    _shippingCostController.text = product['shippingCost']?.toString() ?? '';
+    _colorsController.text = (product['colors'] as List?)?.join(', ') ?? '';
+    _sizesController.text = (product['sizes'] as List?)?.join(', ') ?? '';
+    _selectedCategory = product['category'];
+    _isOutOfStock = product['isOutOfStock'] ?? false;
+    _uploadedImageUrls = List<String>.from(product['imageUrls'] ?? []);
   }
 
   Future<void> _loadCategories() async {
-    setState(() => _isLoading = true);
     try {
       final response = await http.get(Uri.parse('$apiUrl/api/categories'));
       if (response.statusCode == 200) {
+        final List<dynamic> categoriesJson = json.decode(response.body);
         setState(() {
-          _categories = (json.decode(response.body) as List)
-              .map((category) => category['name'].toString())
-              .toList();
-          if (_categories.isNotEmpty && _selectedCategory == null) {
-            _selectedCategory = _categories[0];
-          }
-        });
-      } else {
-        setState(() {
-          _message = 'Erro ao carregar categorias';
-          _messageColor = Colors.red;
+          _categories =
+              categoriesJson
+                  .map((category) => category['name'].toString())
+                  .toList();
         });
       }
     } catch (e) {
-      setState(() {
-        _message = 'Erro: ${e.toString()}';
-        _messageColor = Colors.red;
-      });
-    } finally {
-      setState(() => _isLoading = false);
+      _showMessage('Erro ao carregar categorias: $e', Colors.red);
     }
   }
 
-  Future<void> _loadProductDetails() async {
-    setState(() => _isLoading = true);
+  Future<void> _pickImages() async {
     try {
-      final response =
-          await http.get(Uri.parse('$apiUrl/api/products/${widget.productId}'));
+      FilePickerResult? result = await FilePicker.platform.pickFiles(
+        type: FileType.image,
+        allowMultiple: true,
+      );
 
-      if (kDebugMode) {
-        print('Response status: ${response.statusCode}');
-      }
-      if (kDebugMode) {
-        print('Response body: ${response.body}');
-      }
-
-      if (response.statusCode == 200) {
-        final product = json.decode(response.body);
-
-        if (kDebugMode) {
-          print('Product data: $product');
-        }
-
+      if (result != null) {
         setState(() {
-          _titleController.text = product['title'] ?? '';
-          _descriptionController.text = product['description'] ?? '';
-          _priceController.text = product['price']?.toString() ?? '';
-          _discountController.text = product['discount']?.toString() ?? '';
-          _colorsController.text =
-              (product['colors'] as List<dynamic>?)?.join(', ') ?? '';
-          _sizesController.text =
-              (product['sizes'] as List<dynamic>?)?.join(', ') ?? '';
-          _shippingCostController.text =
-              product['shippingCost']?.toString() ?? '';
-          _selectedCategory = product['category'] ?? '';
-          _isOutOfStock = product['isOutOfStock'] ?? false;
-
-          _imageUrls.clear();
-          _imageUrls.addAll((product['imageUrls'] as List<dynamic>?)
-                  ?.map((url) => TextEditingController(text: url as String))
-                  .toList() ??
-              []);
-        });
-      } else {
-        setState(() {
-          _message = 'Erro ao carregar detalhes do produto';
-          _messageColor = Colors.red;
+          _selectedImages.addAll(result.files);
         });
       }
     } catch (e) {
-      setState(() {
-        _message = 'Erro: ${e.toString()}';
-        _messageColor = Colors.red;
-      });
-    } finally {
-      setState(() => _isLoading = false);
+      _showMessage('Erro ao selecionar imagens: $e', Colors.red);
     }
+  }
+
+  Future<void> _uploadImages() async {
+    if (_selectedImages.isEmpty) return;
+
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      var request = http.MultipartRequest(
+        'POST',
+        Uri.parse('$apiUrl/api/upload'),
+      );
+
+      for (var image in _selectedImages) {
+        var file = File(image.path!);
+        var stream = http.ByteStream(file.openRead());
+        var length = await file.length();
+
+        var multipartFile = http.MultipartFile(
+          'images',
+          stream,
+          length,
+          filename: image.name,
+          contentType: MediaType('image', 'jpeg'),
+        );
+
+        request.files.add(multipartFile);
+      }
+
+      var response = await request.send();
+
+      if (response.statusCode == 200) {
+        var responseData = await response.stream.bytesToString();
+        var jsonResponse = json.decode(responseData);
+
+        setState(() {
+          _uploadedImageUrls = List<String>.from(jsonResponse['imageUrls']);
+          _selectedImages.clear();
+          _isLoading = false;
+        });
+
+        _showMessage('Imagens enviadas com sucesso!', Colors.green);
+      } else {
+        _showMessage(
+          'Erro ao enviar imagens: ${response.reasonPhrase}',
+          Colors.red,
+        );
+      }
+    } catch (e) {
+      _showMessage('Erro ao enviar imagens: $e', Colors.red);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  void _removeUploadedImage(int index) {
+    setState(() {
+      _uploadedImageUrls.removeAt(index);
+    });
   }
 
   Future<void> _updateProduct() async {
     if (_formKey.currentState?.validate() ?? false) {
-      setState(() => _isLoading = true);
+      setState(() {
+        _isLoading = true;
+      });
+
       try {
         final response = await http.put(
           Uri.parse('$apiUrl/api/products/${widget.productId}'),
@@ -138,206 +178,196 @@ class _EditProductScreenState extends State<EditProductScreen> {
           body: json.encode({
             'title': _titleController.text,
             'description': _descriptionController.text,
-            'price': double.tryParse(_priceController.text),
-            'discount': double.tryParse(_discountController.text),
-            'imageUrls': _imageUrls.map((e) => e.text).toList(),
+            'price': double.tryParse(_priceController.text) ?? 0,
+            'imageUrls': _uploadedImageUrls,
             'colors':
                 _colorsController.text.split(',').map((e) => e.trim()).toList(),
             'sizes':
                 _sizesController.text.split(',').map((e) => e.trim()).toList(),
-            'shippingCost': double.tryParse(_shippingCostController.text),
+            'shippingCost': double.tryParse(_shippingCostController.text) ?? 0,
             'category': _selectedCategory,
+            'discount': double.tryParse(_discountController.text) ?? 0,
             'isOutOfStock': _isOutOfStock,
           }),
         );
+
         if (response.statusCode == 200) {
-          Navigator.pop(
-              context, true); // Indica que a atualização foi bem-sucedida
+          _showMessage('Produto atualizado com sucesso!', Colors.green);
         } else {
-          setState(() {
-            _message = 'Erro ao atualizar produto';
-            _messageColor = Colors.red;
-          });
+          _showMessage(
+            'Erro ao atualizar produto: ${response.body}',
+            Colors.red,
+          );
         }
       } catch (e) {
-        setState(() {
-          _message = 'Erro: ${e.toString()}';
-          _messageColor = Colors.red;
-        });
+        _showMessage('Erro ao atualizar produto: $e', Colors.red);
       } finally {
-        setState(() => _isLoading = false);
+        setState(() {
+          _isLoading = false;
+        });
       }
     }
   }
 
   Future<void> _deleteProduct() async {
-    final confirm = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: const Text('Excluir Produto'),
-          content:
-              const Text('Você tem certeza que deseja excluir este produto?'),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
-            ),
-            ElevatedButton(
-              onPressed: () => Navigator.pop(context, true),
-              child: const Text('Excluir'),
-            ),
-          ],
-        );
-      },
-    );
+    setState(() {
+      _isLoading = true;
+    });
 
-    if (confirm == true) {
-      setState(() => _isLoading = true);
-      try {
-        final response = await http.delete(
-          Uri.parse('$apiUrl/api/products/${widget.productId}'),
-        );
-        if (response.statusCode == 200) {
-          Navigator.pop(context, true); // Indica que o produto foi excluído
-        } else {
-          setState(() {
-            _message = 'Erro ao excluir produto';
-            _messageColor = Colors.red;
-          });
-        }
-      } catch (e) {
-        setState(() {
-          _message = 'Erro: ${e.toString()}';
-          _messageColor = Colors.red;
-        });
-      } finally {
-        setState(() => _isLoading = false);
+    try {
+      final response = await http.delete(
+        Uri.parse('$apiUrl/api/products/${widget.productId}'),
+      );
+
+      if (response.statusCode == 200) {
+        _showMessage('Produto excluído com sucesso!', Colors.green);
+        // ignore: use_build_context_synchronously
+        Navigator.of(context).pop(true);
+      } else {
+        _showMessage('Erro ao excluir produto', Colors.red);
       }
+    } catch (e) {
+      _showMessage('Erro ao excluir produto: $e', Colors.red);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
-  bool _isValidUrl(String url) {
-    final uri = Uri.tryParse(url);
-    return uri != null && uri.isAbsolute;
-  }
-
-  void _addImageUrlField() {
+  void _showMessage(String message, Color color) {
     setState(() {
-      _imageUrls.add(TextEditingController());
-    });
-  }
-
-  void _removeImageUrlField(int index) {
-    setState(() {
-      _imageUrls.removeAt(index);
+      _message = message;
+      _messageColor = color;
     });
   }
 
   @override
-  Widget build(BuildContext context) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        if (constraints.maxWidth < 600) {
-          return _buildSmallScreenLayout(context);
-        } else {
-          return _buildLargeScreenLayout(context);
-        }
-      },
-    );
+  void dispose() {
+    _titleController.dispose();
+    _descriptionController.dispose();
+    _priceController.dispose();
+    _discountController.dispose();
+    _shippingCostController.dispose();
+    _colorsController.dispose();
+    _sizesController.dispose();
+    super.dispose();
   }
 
-  Widget _buildSmallScreenLayout(BuildContext context) {
+  @override
+  Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Editar Produto',
-          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: _isLoading
-            ? const Center(child: CircularProgressIndicator.adaptive())
-            : Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  if (_message.isNotEmpty)
-                    Padding(
-                      padding: const EdgeInsets.only(bottom: 16.0),
-                      child: Text(
-                        _message,
-                        style: TextStyle(color: _messageColor, fontSize: 16),
-                      ),
-                    ),
-                  Expanded(
-                    child: SingleChildScrollView(
-                      child: Form(
-                        key: _formKey,
+      body:
+          _isLoading
+              ? const Center(child: CircularProgressIndicator())
+              : Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
                         child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
+                            if (_message.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(bottom: 16.0),
+                                child: Text(
+                                  _message,
+                                  style: TextStyle(color: _messageColor),
+                                ),
+                              ),
                             TextFormField(
                               controller: _titleController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Título'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, insira um título';
-                                }
-                                return null;
-                              },
+                              decoration: const InputDecoration(
+                                labelText: 'Título',
+                              ),
+                              validator:
+                                  (value) =>
+                                      value!.isEmpty
+                                          ? 'Campo obrigatório'
+                                          : null,
                             ),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _descriptionController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Descrição'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, insira uma descrição';
-                                }
-                                return null;
-                              },
+                              decoration: const InputDecoration(
+                                labelText: 'Descrição',
+                              ),
+                              maxLines: 5,
+                              validator:
+                                  (value) =>
+                                      value!.isEmpty
+                                          ? 'Campo obrigatório'
+                                          : null,
                             ),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _priceController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Preço'),
-                              keyboardType: TextInputType.number,
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, insira um preço';
-                                }
-                                return null;
-                              },
+                              decoration: const InputDecoration(
+                                labelText: 'Preço',
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
+                              validator:
+                                  (value) =>
+                                      value!.isEmpty
+                                          ? 'Campo obrigatório'
+                                          : null,
                             ),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _discountController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Desconto'),
-                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Desconto (%)',
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
                             ),
-                            TextFormField(
-                              controller: _colorsController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Cores'),
-                            ),
-                            TextFormField(
-                              controller: _sizesController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Tamanhos'),
-                            ),
+                            const SizedBox(height: 16),
                             TextFormField(
                               controller: _shippingCostController,
-                              decoration:
-                                  const InputDecoration(labelText: 'Frete'),
-                              keyboardType: TextInputType.number,
+                              decoration: const InputDecoration(
+                                labelText: 'Custo de Envio',
+                              ),
+                              keyboardType:
+                                  const TextInputType.numberWithOptions(
+                                    decimal: true,
+                                  ),
                             ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _colorsController,
+                              decoration: const InputDecoration(
+                                labelText: 'Cores (separadas por vírgulas)',
+                              ),
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _sizesController,
+                              decoration: const InputDecoration(
+                                labelText: 'Tamanhos (separados por vírgulas)',
+                              ),
+                            ),
+                            const SizedBox(height: 16),
                             Row(
                               children: [
-                                const Text('Sem Estoque:'),
-                                Switch.adaptive(
+                                const Text('Sem estoque:'),
+                                Switch(
                                   value: _isOutOfStock,
                                   onChanged: (value) {
                                     setState(() {
@@ -349,61 +379,24 @@ class _EditProductScreenState extends State<EditProductScreen> {
                             ),
                             DropdownButtonFormField<String>(
                               value: _selectedCategory,
-                              items: _categories.map((category) {
-                                return DropdownMenuItem<String>(
-                                  value: category,
-                                  child: Text(category),
-                                );
-                              }).toList(),
+                              decoration: const InputDecoration(
+                                labelText: 'Categoria',
+                              ),
+                              items:
+                                  _categories.map((category) {
+                                    return DropdownMenuItem(
+                                      value: category,
+                                      child: Text(category),
+                                    );
+                                  }).toList(),
                               onChanged: (value) {
                                 setState(() {
                                   _selectedCategory = value;
                                 });
                               },
-                              decoration:
-                                  const InputDecoration(labelText: 'Categoria'),
-                              validator: (value) {
-                                if (value == null || value.isEmpty) {
-                                  return 'Por favor, selecione uma categoria';
-                                }
-                                return null;
-                              },
                             ),
-                            ..._imageUrls.asMap().entries.map((entry) {
-                              int index = entry.key;
-                              TextEditingController controller = entry.value;
-                              return Row(
-                                children: [
-                                  Expanded(
-                                    child: TextFormField(
-                                      controller: controller,
-                                      decoration: InputDecoration(
-                                          labelText:
-                                              'URL da Imagem ${index + 1}'),
-                                      validator: (value) {
-                                        if (value != null &&
-                                            value.isNotEmpty &&
-                                            !_isValidUrl(value)) {
-                                          return 'URL inválido';
-                                        }
-                                        return null;
-                                      },
-                                    ),
-                                  ),
-                                  IconButton(
-                                    icon: const Icon(Icons.remove_circle),
-                                    color: Colors.red,
-                                    onPressed: () =>
-                                        _removeImageUrlField(index),
-                                  ),
-                                ],
-                              );
-                            }),
-                            const SizedBox(height: 16),
-                            ElevatedButton(
-                              onPressed: _addImageUrlField,
-                              child: const Text('Adicionar URL de Imagem'),
-                            ),
+                            const SizedBox(height: 24),
+
                             const SizedBox(height: 16),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -413,70 +406,190 @@ class _EditProductScreenState extends State<EditProductScreen> {
                                   child: const Text('Atualizar Produto'),
                                 ),
                                 ElevatedButton(
-                                  onPressed: _deleteProduct,
+                                  onPressed: () {
+                                    showDialog(
+                                      context: context,
+                                      builder:
+                                          (context) => AlertDialog(
+                                            title: const Text(
+                                              'Confirmar Exclusão',
+                                            ),
+                                            content: const Text(
+                                              'Tem certeza que deseja excluir este produto?',
+                                            ),
+                                            actions: [
+                                              TextButton(
+                                                onPressed:
+                                                    () =>
+                                                        Navigator.pop(context),
+                                                child: const Text('Cancelar'),
+                                              ),
+                                              TextButton(
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                  _deleteProduct();
+                                                },
+                                                child: const Text(
+                                                  'Excluir',
+                                                  style: TextStyle(
+                                                    color: Colors.red,
+                                                  ),
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                    );
+                                  },
                                   style: ElevatedButton.styleFrom(
-                                      backgroundColor: Colors.red),
+                                    backgroundColor: Colors.red,
+                                  ),
                                   child: const Text('Excluir Produto'),
                                 ),
                               ],
                             ),
-                            const SizedBox(height: 16),
-                            ProductPreview(
-                              title: _titleController.text,
-                              description: _descriptionController.text,
-                              price: _priceController.text,
-                              discount: _discountController.text,
-                              imageUrls: _imageUrls
-                                  .map((controller) => controller.text)
-                                  .toList(),
-                              selectedCategory: _selectedCategory,
-                              isOutOfStock: _isOutOfStock,
-                              colors: _colorsController.text,
-                              sizes: _sizesController.text,
-                              shippingCost: _shippingCostController.text,
-                            ),
                           ],
                         ),
                       ),
-                    ),
-                  ),
-                ],
-              ),
-      ),
-    );
-  }
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              'Imagens do Produto',
+                              style: TextStyle(
+                                fontSize: 18,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            const SizedBox(height: 16),
 
-  Widget _buildLargeScreenLayout(BuildContext context) {
-    return EditProductScreenDesktop(
-      formKey: _formKey,
-      titleController: _titleController,
-      descriptionController: _descriptionController,
-      priceController: _priceController,
-      discountController: _discountController,
-      colorsController: _colorsController,
-      sizesController: _sizesController,
-      shippingCostController: _shippingCostController,
-      imageUrls: _imageUrls,
-      selectedCategory: _selectedCategory,
-      categories: _categories,
-      isOutOfStock: _isOutOfStock,
-      isLoading: _isLoading,
-      message: _message,
-      messageColor: _messageColor,
-      onAddImageUrlField: _addImageUrlField,
-      onRemoveImageUrlField: _removeImageUrlField,
-      onCategoryChanged: (value) {
-        setState(() {
-          _selectedCategory = value;
-        });
-      },
-      onOutOfStockChanged: (value) {
-        setState(() {
-          _isOutOfStock = value;
-        });
-      },
-      onUpdateProduct: _updateProduct,
-      onDeleteProduct: _deleteProduct,
+                            // Botão para selecionar imagens
+                            ElevatedButton(
+                              onPressed: _pickImages,
+                              child: const Text('Selecionar Imagens'),
+                            ),
+
+                            // Botão para enviar imagens selecionadas
+                            if (_selectedImages.isNotEmpty)
+                              Padding(
+                                padding: const EdgeInsets.only(top: 8.0),
+                                child: ElevatedButton(
+                                  onPressed: _uploadImages,
+                                  child: const Text('Enviar Imagens'),
+                                ),
+                              ),
+
+                            // Lista de imagens selecionadas (ainda não enviadas)
+                            if (_selectedImages.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Imagens selecionadas:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _selectedImages.length,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Stack(
+                                        children: [
+                                          Image.file(
+                                            File(_selectedImages[index].path!),
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                Icons.close,
+                                                color: Colors.red,
+                                              ),
+                                              onPressed:
+                                                  () => _removeImage(index),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+
+                            // Lista de imagens já enviadas
+                            if (_uploadedImageUrls.isNotEmpty) ...[
+                              const SizedBox(height: 16),
+                              const Text(
+                                'Imagens enviadas:',
+                                style: TextStyle(fontWeight: FontWeight.bold),
+                              ),
+                              SizedBox(
+                                height: 100,
+                                child: ListView.builder(
+                                  scrollDirection: Axis.horizontal,
+                                  itemCount: _uploadedImageUrls.length,
+                                  itemBuilder: (context, index) {
+                                    return Padding(
+                                      padding: const EdgeInsets.all(8.0),
+                                      child: Stack(
+                                        children: [
+                                          Image.network(
+                                            _uploadedImageUrls[index],
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                          ),
+                                          Positioned(
+                                            top: 0,
+                                            right: 0,
+                                            child: IconButton(
+                                              icon: const Icon(
+                                                Icons.close,
+                                                color: Colors.red,
+                                              ),
+                                              onPressed:
+                                                  () => _removeUploadedImage(
+                                                    index,
+                                                  ),
+                                            ),
+                                          ),
+                                        ],
+                                      ),
+                                    );
+                                  },
+                                ),
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      Expanded(
+                        flex: 1,
+                        child: ProductPreview(
+                          title: _titleController.text,
+                          description: _descriptionController.text,
+                          price: _priceController.text,
+                          discount: _discountController.text,
+                          imageUrls: _uploadedImageUrls,
+                          selectedCategory: _selectedCategory,
+                          isOutOfStock: false,
+                          colors: _colorsController.text,
+                          sizes: _sizesController.text,
+                          shippingCost: _shippingCostController.text,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
     );
   }
 }

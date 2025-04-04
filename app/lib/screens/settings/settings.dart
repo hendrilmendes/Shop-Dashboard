@@ -1,74 +1,64 @@
-import 'package:dashboard/manager/manager.dart';
-import 'package:dashboard/updater/updater.dart';
+// ignore_for_file: deprecated_member_use
+
 import 'package:flutter/material.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:provider/provider.dart';
 import 'package:dashboard/theme/theme.dart';
 import 'package:dashboard/widgets/settings/settings.dart';
 import 'package:flutter/foundation.dart' as foundation;
-import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:dashboard/manager/manager.dart';
+import 'package:dashboard/updater/updater.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
 
   @override
-  createState() => _SettingsScreenState();
+  State<SettingsScreen> createState() => _SettingsScreenState();
 }
 
 class _SettingsScreenState extends State<SettingsScreen> {
-  String appVersion = '';
-  String appBuild = '';
   BackupRestoreManager? _backupRestoreManager;
   final TextEditingController _apiUrlController = TextEditingController();
+  bool _isLoading = true;
 
   @override
   void initState() {
     super.initState();
-    PackageInfo.fromPlatform().then((packageInfo) {
-      setState(() {
-        appVersion = packageInfo.version;
-        appBuild = packageInfo.buildNumber;
-      });
-    });
-
-    _loadApiUrl();
+    _initializeData();
   }
 
-  Future<void> _loadApiUrl() async {
+  Future<void> _initializeData() async {
     final prefs = await SharedPreferences.getInstance();
-    String savedApiUrl =
+    final savedApiUrl =
         prefs.getString('apiUrl') ?? 'http://192.168.1.100:3000';
-    _apiUrlController.text = savedApiUrl;
 
     setState(() {
+      _apiUrlController.text = savedApiUrl;
       _backupRestoreManager = BackupRestoreManager(
         context: context,
         apiUrl: savedApiUrl,
       );
+      _isLoading = false;
     });
   }
 
-  void _saveApiUrl() async {
+  Future<void> _saveApiUrl() async {
     final prefs = await SharedPreferences.getInstance();
-    String url = _apiUrlController.text;
+    String url = _apiUrlController.text.trim();
 
-    // Adiciona o protocolo caso não esteja presente
+    // URL formatting
     if (!url.startsWith('http://') && !url.startsWith('https://')) {
       url = 'http://$url';
     }
-
-    // Verifica se a porta 3000 está presente, caso contrário, adiciona
     if (!url.contains(':3000')) {
-      url = url.endsWith('/')
-          ? '${url.substring(0, url.length - 1)}:3000'
-          : '$url:3000';
+      url =
+          url.endsWith('/')
+              ? '${url.substring(0, url.length - 1)}:3000'
+              : '$url:3000';
     }
 
-    // Salva a URL no SharedPreferences
     await prefs.setString('apiUrl', url);
 
-    // Atualiza o estado com o novo valor
     setState(() {
       _backupRestoreManager = BackupRestoreManager(
         context: context,
@@ -76,229 +66,241 @@ class _SettingsScreenState extends State<SettingsScreen> {
       );
     });
 
-    // Feedback ao usuário
-    // ignore: use_build_context_synchronously
+    if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text('URL da API salva: $url')),
+      SnackBar(
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+        content: Text('Server URL updated to $url'),
+      ),
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    if (_backupRestoreManager == null) {
+    if (_isLoading) {
       return Scaffold(
-        appBar: AppBar(title: Text('Configurações')),
-        body: Center(child: CircularProgressIndicator.adaptive()),
+        body: Center(
+          child: CircularProgressIndicator(
+            strokeWidth: 2,
+            valueColor: AlwaysStoppedAnimation(Theme.of(context).primaryColor),
+          ),
+        ),
       );
     }
+
+    final theme = Theme.of(context);
     final themeModel = Provider.of<ThemeModel>(context);
 
     return Scaffold(
       appBar: AppBar(
         title: Text(
           'Configurações',
-          style: Theme.of(context).textTheme.headlineMedium!.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+          style: Theme.of(
+            context,
+          ).textTheme.headlineMedium!.copyWith(fontWeight: FontWeight.bold),
         ),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(8.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: ListView(
-                children: [
-                  _buildCard(
-                    title: 'Personalização',
-                    icon: Icons.color_lens_outlined,
-                    children: [
-                      ThemeSettings(themeModel: themeModel),
-                    ],
-                  ),
-                  _buildCard(
-                    title: 'Backup e Restauração',
-                    icon: Icons.cloud_upload_outlined,
-                    children: [
-                      _buildElevatedButton(
-                        text: 'Fazer Backup',
-                        icon: Icons.backup_outlined,
-                        onPressed: _backupRestoreManager!.backup,
-                      ),
-                      _buildElevatedButton(
-                        text: 'Restaurar Backup',
-                        icon: Icons.restore_outlined,
-                        onPressed: _backupRestoreManager!.restore,
-                      ),
-                    ],
-                  ),
-                  _buildCard(
-                    title: 'Informações do Sistema',
-                    icon: Icons.info_outline,
-                    children: [
-                      _buildInfoRow(
-                          'Versão', '$appVersion | Build: ($appBuild)'),
-                      _buildInfoRow('Sistema Operacional', _getPlatformName()),
-                    ],
-                  ),
-                  if (!foundation.kIsWeb)
-                    _buildCard(
-                      title: 'Atualizações',
-                      icon: Icons.update_outlined,
-                      children: [
-                        ListTile(
-                          title: const Text("Verificar atualizações"),
-                          onTap: () {
-                            Updater.checkForUpdates(context);
-                          },
-                        ),
-                      ],
-                    ),
-                  // Adicionando a opção para mudar o IP do servidor
-                  _buildCard(
-                    title: 'Configuração do Servidor',
-                    icon: Icons.network_check,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 8.0),
-                        child: TextField(
-                          controller: _apiUrlController,
-                          decoration: InputDecoration(
-                            labelText: 'Endereço do Servidor',
-                            border: OutlineInputBorder(),
-                          ),
-                        ),
-                      ),
-                      _buildElevatedButton(
-                        text: 'Salvar Configuração',
-                        icon: Icons.save_outlined,
-                        onPressed: _saveApiUrl,
-                      ),
-                    ],
-                  ),
-                  _buildCard(
-                    title: 'Outros',
-                    icon: Icons.library_books_outlined,
-                    children: [
-                      ListTile(
-                        title: const Text("Licenças"),
-                        subtitle: const Text(
-                            "Softwares de terceiros usados na construção da plataforma"),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => const LicensePage(
-                                applicationName: "Shop Dashboard",
-                              ),
-                            ),
-                          );
-                        },
-                      ),
-                    ],
-                  ),
-                ],
+      body: ListView(
+        padding: const EdgeInsets.all(16),
+        children: [
+          _SettingsSection(
+            title: 'Aparencia',
+            icon: Icons.palette_outlined,
+            children: [ThemeSettings(themeModel: themeModel)],
+          ),
+          const SizedBox(height: 16),
+          _SettingsSection(
+            title: 'Gerenciamento de Dados',
+            icon: Icons.cloud_sync_outlined,
+            children: [
+              _SettingsTile(
+                title: 'Criar Backup',
+                subtitle: 'Salve os dados do sistema',
+                icon: Icons.backup_outlined,
+                onTap: _backupRestoreManager!.backup,
               ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  String _getPlatformName() {
-    if (foundation.kIsWeb) {
-      return 'Web';
-    }
-
-    switch (defaultTargetPlatform) {
-      case TargetPlatform.iOS:
-        return 'iOS';
-      case TargetPlatform.android:
-        return 'Android';
-      case TargetPlatform.linux:
-        return 'Linux';
-      case TargetPlatform.macOS:
-        return 'macOS';
-      case TargetPlatform.windows:
-        return 'Windows';
-      default:
-        return 'Desconhecido';
-    }
-  }
-
-  Widget _buildCard({
-    required String title,
-    required IconData icon,
-    required List<Widget> children,
-  }) {
-    return Card(
-      elevation: 4,
-      margin: const EdgeInsets.only(bottom: 16),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(20),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
+              _SettingsTile(
+                title: 'Restaurar Backup',
+                subtitle: 'Restaurar os dados do sistema',
+                icon: Icons.restore_outlined,
+                onTap: _backupRestoreManager!.restore,
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          if (!foundation.kIsWeb)
+            _SettingsSection(
+              title: 'Atualizações',
+              icon: Icons.system_update_outlined,
               children: [
-                Icon(icon, size: 28),
-                const SizedBox(width: 12),
-                Text(
-                  title,
-                  style: const TextStyle(
-                      fontSize: 22, fontWeight: FontWeight.bold),
+                _SettingsTile(
+                  title: 'Verificar Atualizações',
+                  subtitle: 'Verifique se há atualizações',
+                  icon: Icons.update_outlined,
+                  onTap: () => Updater.checkForUpdates(context),
                 ),
               ],
             ),
-            const SizedBox(height: 16),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildElevatedButton({
-    required String text,
-    required IconData icon,
-    required VoidCallback onPressed,
-  }) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: ElevatedButton.icon(
-        onPressed: onPressed,
-        icon: Icon(
-          icon,
-          color: Colors.blue,
-        ),
-        label: Text(text),
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size.fromHeight(50),
-          backgroundColor: Colors.blueGrey[600],
-          foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+          const SizedBox(height: 16),
+          _SettingsSection(
+            title: 'Configurações do Servidor',
+            icon: Icons.dns_outlined,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: TextField(
+                  controller: _apiUrlController,
+                  decoration: InputDecoration(
+                    labelText: 'IP do Servidor',
+                    hintText: 'Digite o IP do servidor',
+                    prefixIcon: Icon(Icons.link_outlined),
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(12),
+                      borderSide: BorderSide.none,
+                    ),
+                    filled: true,
+                    fillColor: theme.colorScheme.surfaceContainerHighest,
+                  ),
+                ),
+              ),
+              const SizedBox(height: 8),
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 16),
+                child: FilledButton.icon(
+                  icon: Icon(Icons.save_outlined, size: 20),
+                  label: Text('Salvar'),
+                  style: FilledButton.styleFrom(
+                    minimumSize: Size.fromHeight(48),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                  ),
+                  onPressed: _saveApiUrl,
+                ),
+              ),
+            ],
           ),
-          textStyle: const TextStyle(fontSize: 18),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildInfoRow(String label, [String value = '']) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Text(label, style: const TextStyle(fontSize: 16)),
-          if (value.isNotEmpty)
-            Text(value, style: const TextStyle(fontSize: 16)),
+          const SizedBox(height: 16),
+          _SettingsSection(
+            title: 'Sobre',
+            icon: Icons.info_outline,
+            children: [
+              _SettingsTile(
+                title: 'Licenças',
+                subtitle:
+                    'Softwares de terceiros usados na construção da plataforma',
+                icon: Icons.description_outlined,
+                onTap: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder:
+                          (context) => LicensePage(
+                            applicationName: "Dashboard ShopTem",
+                            applicationIcon: Padding(
+                              padding: const EdgeInsets.all(8),
+                              child: Icon(
+                                Icons.shopping_cart_outlined,
+                                size: 40,
+                              ),
+                            ),
+                          ),
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
         ],
       ),
+    );
+  }
+}
+
+class _SettingsSection extends StatelessWidget {
+  final String title;
+  final IconData icon;
+  final List<Widget> children;
+
+  const _SettingsSection({
+    required this.title,
+    required this.icon,
+    required this.children,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          child: Row(
+            children: [
+              Icon(icon, size: 20),
+              const SizedBox(width: 8),
+              Text(
+                title,
+                style: Theme.of(
+                  context,
+                ).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.w600),
+              ),
+            ],
+          ),
+        ),
+        Card(
+          elevation: 0,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+            side: BorderSide(
+              color: Theme.of(context).dividerColor.withOpacity(0.1),
+            ),
+          ),
+          child: Column(children: children),
+        ),
+      ],
+    );
+  }
+}
+
+class _SettingsTile extends StatelessWidget {
+  final String title;
+  final String? subtitle;
+  final IconData icon;
+  final VoidCallback? onTap;
+
+  const _SettingsTile({
+    required this.title,
+    this.subtitle,
+    required this.icon,
+    this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      leading: Container(
+        width: 40,
+        height: 40,
+        decoration: BoxDecoration(
+          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+          borderRadius: BorderRadius.circular(12),
+        ),
+        child: Icon(icon, color: Theme.of(context).colorScheme.primary),
+      ),
+      title: Text(title),
+      subtitle: subtitle != null ? Text(subtitle!) : null,
+      trailing:
+          onTap != null
+              ? Icon(
+                Icons.chevron_right_outlined,
+                color: Theme.of(context).colorScheme.outline,
+              )
+              : null,
+      onTap: onTap,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
     );
   }
 }

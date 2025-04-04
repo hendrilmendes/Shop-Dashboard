@@ -1,0 +1,1 @@
+/home/hendril/Documentos/GitHub/Shop-Dashboard/app/build/app/intermediates/cxx/RelWithDebInfo/4p311i68/obj/x86

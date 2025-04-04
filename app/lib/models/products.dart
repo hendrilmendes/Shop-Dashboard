@@ -33,4 +33,17 @@ class Product {
       isOutOfStock: json['isOutOfStock'] ?? false,
     );
   }
+  
+   Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'imageUrls': imageUrls,
+      'price': price,
+      'discount': discount,
+      'isOutOfStock': isOutOfStock,
+    };
+  }
+
 }

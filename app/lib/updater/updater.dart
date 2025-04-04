@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:io' show Platform;
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
@@ -11,10 +10,9 @@ class Updater {
     try {
       final response = await http.get(
         Uri.parse(
-            'https://api.github.com/repos/hendrilmendes/Shop-Dashboard/releases/latest'),
-        headers: {
-          'Accept': 'application/vnd.github.v3+json',
-        },
+          'https://api.github.com/repos/hendrilmendes/Shop-Dashboard/releases/latest',
+        ),
+        headers: {'Accept': 'application/vnd.github.v3+json'},
       );
 
       if (response.statusCode == 200) {
@@ -48,18 +46,14 @@ class Updater {
                     const SizedBox(height: 16),
                     const Text(
                       "Novidades",
-                      style: TextStyle(
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: TextStyle(fontWeight: FontWeight.bold),
                     ),
                     const SizedBox(height: 8),
                     ConstrainedBox(
                       constraints: BoxConstraints(
                         maxHeight: MediaQuery.of(context).size.height * 0.6,
                       ),
-                      child: SingleChildScrollView(
-                        child: Text(releaseNotes),
-                      ),
+                      child: SingleChildScrollView(child: Text(releaseNotes)),
                     ),
                     const SizedBox(height: 16),
                     Row(
@@ -72,11 +66,9 @@ class Updater {
                         const SizedBox(width: 8),
                         FilledButton(
                           onPressed: () {
-                            final Uri uri = Platform.isAndroid
-                                ? Uri.parse(
-                                    'https://play.google.com/store/apps/details?id=com.github.hendrilmendes.shop.dashboard')
-                                : Uri.parse(
-                                    'https://github.com/hendrilmendes/Calculadora/releases/latest');
+                            final Uri uri = Uri.parse(
+                              'https://github.com/hendrilmendes/Shop-Dashboard/releases/latest',
+                            );
 
                             launchUrl(uri);
                             Navigator.pop(context); // Fecha o modal

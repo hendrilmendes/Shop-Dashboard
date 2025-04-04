@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.github.hendrilmendes.shop.dashboard" "\0"
-            VALUE "FileDescription", "Shop Dashboard" "\0"
+            VALUE "FileDescription", "Dashboard ShopTem" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "Shop Dashboard" "\0"
-            VALUE "LegalCopyright", "Copyright (C) 2024 Hendril Mendes. All rights reserved." "\0"
+            VALUE "InternalName", "Dashboard ShopTem" "\0"
+            VALUE "LegalCopyright", "Copyright (C) 2025 Hendril Mendes. All rights reserved." "\0"
             VALUE "OriginalFilename", "shop_dashboard.exe" "\0"
-            VALUE "ProductName", "Shop Dashboard" "\0"
+            VALUE "ProductName", "Dashboard ShopTem" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END
